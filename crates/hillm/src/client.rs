@@ -5,7 +5,7 @@ pub struct Client<C: Config> {
     config: C,
 }
 
-impl<C: Config> Client {
+impl<C: Config> Client<C> {
     pub fn new() -> Self {
         let request_client = reqwest::Client::new();
         Self {

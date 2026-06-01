@@ -1,10 +1,11 @@
-use secrecy::{ExposeSecret, SecretString};
+use secrecy::SecretString;
 
 /// Default OpenRouter API base url
-pub const BASE_URL_OPENAI: &str = "https://openrouter.ai/api/v1";
+pub const BASE_URL_OPENROUTER: &str = "https://openrouter.ai/api/v1";
 
 /// [crate::Client] relies on this for api calls
 pub trait Config: Send + Sync {
+    fn new() -> Self;
     fn base_url(&self) -> &str;
     fn api_key(&self) -> &SecretString;
 }
@@ -15,13 +16,6 @@ pub struct OpenRouterConfig {
 }
 
 impl OpenRouterConfig {
-    pub fn new() -> Self {
-        Self {
-            base_url: std::env::var("OPENROUTER_BASE_URL")
-                .unwrap_or_else(|_| BASE_URL_OPENROUTER.to_string()),
-            api_key: std::env::var("OPENROUTER_API_KEY").unwrap_or_default(),
-        }
-    }
     pub fn with_base_url<S: Into<String>>(mut self, base_url: S) -> Self {
         self.base_url = base_url.into();
         self
@@ -33,10 +27,19 @@ impl OpenRouterConfig {
 }
 
 impl Config for OpenRouterConfig {
+    fn new() -> Self {
+        Self {
+            base_url: std::env::var("OPENROUTER_BASE_URL")
+                .unwrap_or_else(|_| BASE_URL_OPENROUTER.to_string()),
+            api_key: std::env::var("OPENROUTER_API_KEY")
+                .unwrap_or_default()
+                .into(),
+        }
+    }
     fn base_url(&self) -> &str {
-        self.base_url
+        &self.base_url
     }
     fn api_key(&self) -> &SecretString {
-        self.api_key
+        &self.api_key
     }
 }
