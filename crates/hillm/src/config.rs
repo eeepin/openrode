@@ -1,7 +1,7 @@
 use secrecy::{ExposeSecret, SecretString};
 
-/// Default OpenAI API base url
-pub const BASE_URL_OPENAI: &str = "https://api.openai.com/v1";
+/// Default OpenRouter API base url
+pub const BASE_URL_OPENAI: &str = "https://openrouter.ai/api/v1";
 
 /// [crate::Client] relies on this for api calls
 pub trait Config: Send + Sync {
@@ -9,17 +9,17 @@ pub trait Config: Send + Sync {
     fn api_key(&self) -> &SecretString;
 }
 
-pub struct OpenAIConfig {
+pub struct OpenRouterConfig {
     base_url: String,
     api_key: SecretString,
 }
 
-impl OpenAIConfig {
+impl OpenRouterConfig {
     pub fn new() -> Self {
         Self {
-            base_url: std::env::var("OPENAI_BASE_URL")
-                .unwrap_or_else(|_| BASE_URL_OPENAI.to_string()),
-            api_key: std::env::var("OPENAI_API_KEY").unwrap_or_default(),
+            base_url: std::env::var("OPENROUTER_BASE_URL")
+                .unwrap_or_else(|_| BASE_URL_OPENROUTER.to_string()),
+            api_key: std::env::var("OPENROUTER_API_KEY").unwrap_or_default(),
         }
     }
     pub fn with_base_url<S: Into<String>>(mut self, base_url: S) -> Self {
@@ -32,7 +32,7 @@ impl OpenAIConfig {
     }
 }
 
-impl Config for OpenAIConfig {
+impl Config for OpenRouterConfig {
     fn base_url(&self) -> &str {
         self.base_url
     }
