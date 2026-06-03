@@ -1,4 +1,5 @@
 use crate::types::CacheControl;
+use crate::{func_return_string, func_return_string_};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -58,22 +59,6 @@ enum Message {
     },
 }
 
-fn system() -> String {
-    "system".to_string()
-}
-fn developer() -> String {
-    "developer".to_string()
-}
-fn user() -> String {
-    "user".to_string()
-}
-fn tool() -> String {
-    "tool".to_string()
-}
-fn assistant() -> String {
-    "assistant".to_string()
-}
-
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(untagged)]
 enum MessageContent {
@@ -116,22 +101,6 @@ enum ContentPart {
         content_type: String,
         video_url: UrlPart,
     },
-}
-
-fn text() -> String {
-    "text".to_string()
-}
-fn file() -> String {
-    "file".to_string()
-}
-fn image_url() -> String {
-    "image_url".to_string()
-}
-fn input_audio() -> String {
-    "input_audio".to_string()
-}
-fn video_url() -> String {
-    "video_url".to_string()
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -231,15 +200,6 @@ enum ReasoningDetailType {
         text: Option<String>,
     },
 }
-fn reasoning_encrypted() -> String {
-    "reasoning.encrypted".to_string()
-}
-fn reasoning_summary() -> String {
-    "reasoning.summary".to_string()
-}
-fn reasoning_text() -> String {
-    "reasoning.text".to_string()
-}
 
 #[derive(Deserialize, Serialize, Debug)]
 enum ReasoningFormat {
@@ -265,12 +225,30 @@ struct ToolCall {
     tool_type: String,
     function: FunctionCallInfo,
 }
+
 #[derive(Deserialize, Serialize, Debug)]
 struct FunctionCallInfo {
     arguments: String,
     name: String,
 }
 
-fn function() -> String {
-    "function".to_string()
+func_return_string!(system);
+func_return_string!(developer);
+func_return_string!(user);
+func_return_string!(tool);
+func_return_string!(assistant);
+func_return_string!(text);
+func_return_string!(file);
+func_return_string_!(image_url);
+func_return_string_!(input_audio);
+func_return_string_!(video_url);
+fn reasoning_encrypted() -> String {
+    "reasoning.encrypted".to_string()
 }
+fn reasoning_summary() -> String {
+    "reasoning.summary".to_string()
+}
+fn reasoning_text() -> String {
+    "reasoning.text".to_string()
+}
+func_return_string!(function);
