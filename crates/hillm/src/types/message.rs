@@ -25,7 +25,7 @@ enum Message {
         content: MessageContent,
     },
     User {
-        #[serde(default = "system")]
+        #[serde(default = "user")]
         role: String,
         #[serde(skip_serializing_if = "Option::is_none")]
         name: Option<String>,
