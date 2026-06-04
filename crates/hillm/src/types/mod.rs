@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+pub mod error;
 pub mod message;
 pub mod request;
 pub mod response;
