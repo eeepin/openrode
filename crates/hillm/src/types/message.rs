@@ -10,53 +10,68 @@ pub struct Messages {
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(untagged)]
 enum Message {
-    System {
-        #[serde(default = "system")]
-        role: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        name: Option<String>,
-        content: MessageContent,
-    },
-    Developer {
-        #[serde(default = "developer")]
-        role: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        name: Option<String>,
-        content: MessageContent,
-    },
-    User {
-        #[serde(default = "user")]
-        role: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        name: Option<String>,
-        content: MessageContent,
-    },
-    Tool {
-        #[serde(default = "tool")]
-        role: String,
-        tool_call_id: String,
-        content: MessageContent,
-    },
-    Assistant {
-        #[serde(default = "assistant")]
-        role: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        name: Option<String>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        audio: Option<AudioPart>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        content: Option<MessageContent>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        images: Option<Vec<ImagePart>>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        reasoning: Option<String>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        reasoning_details: Option<Vec<ReasoningDetail>>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        refusal: Option<String>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        tool_calls: Option<Vec<ToolCall>>,
-    },
+    System(SystemMessage),
+    Developer(DeveloperMessage),
+    User(UserMessage),
+    Tool(ToolMessage),
+    Assistant(AssistantMessage),
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct SystemMessage {
+    #[serde(default = "system")]
+    role: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    name: Option<String>,
+    content: MessageContent,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct DeveloperMessage {
+    #[serde(default = "developer")]
+    role: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    name: Option<String>,
+    content: MessageContent,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct UserMessage {
+    #[serde(default = "user")]
+    role: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    name: Option<String>,
+    content: MessageContent,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct ToolMessage {
+    #[serde(default = "tool")]
+    role: String,
+    tool_call_id: String,
+    content: MessageContent,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct AssistantMessage {
+    #[serde(default = "assistant")]
+    role: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    audio: Option<AudioPart>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    content: Option<MessageContent>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    images: Option<Vec<ImagePart>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reasoning: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reasoning_details: Option<Vec<ReasoningDetail>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    refusal: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    tool_calls: Option<Vec<ToolCall>>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -69,38 +84,53 @@ enum MessageContent {
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(untagged)]
 enum ContentPart {
-    Text {
-        #[serde(rename = "type")]
-        #[serde(default = "text")]
-        content_type: String,
-        text: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        cache_control: Option<CacheControl>,
-    },
-    File {
-        #[serde(rename = "type")]
-        #[serde(default = "file")]
-        content_type: String,
-        file: FilePart,
-    },
-    Image {
-        #[serde(rename = "type")]
-        #[serde(default = "image_url")]
-        content_type: String,
-        image_url: ImageContent,
-    },
-    Audio {
-        #[serde(rename = "type")]
-        #[serde(default = "input_audio")]
-        content_type: String,
-        input_audio: AudioContent,
-    },
-    Vedio {
-        #[serde(rename = "type")]
-        #[serde(default = "video_url")]
-        content_type: String,
-        video_url: UrlPart,
-    },
+    Text(TextContentPart),
+    File(FileContentPart),
+    Image(ImageContentPart),
+    Audio(AudioContentPart),
+    Vedio(VedioContentPart),
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct TextContentPart {
+    #[serde(rename = "type")]
+    #[serde(default = "text")]
+    content_type: String,
+    text: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    cache_control: Option<CacheControl>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct FileContentPart {
+    #[serde(rename = "type")]
+    #[serde(default = "file")]
+    content_type: String,
+    file: FilePart,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct ImageContentPart {
+    #[serde(rename = "type")]
+    #[serde(default = "image_url")]
+    content_type: String,
+    image_url: ImageContent,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct AudioContentPart {
+    #[serde(rename = "type")]
+    #[serde(default = "input_audio")]
+    content_type: String,
+    input_audio: AudioContent,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct VedioContentPart {
+    #[serde(rename = "type")]
+    #[serde(default = "video_url")]
+    content_type: String,
+    video_url: UrlPart,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -135,16 +165,19 @@ struct AudioPart {
 struct ImagePart {
     image_url: UrlPart,
 }
+
 #[derive(Deserialize, Serialize, Debug)]
 struct UrlPart {
     url: String,
 }
+
 #[derive(Deserialize, Serialize, Debug)]
 struct ImageContent {
     url: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     detail: Option<VisionDetailLevel>,
 }
+
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(untagged)]
 #[serde(rename_all = "lowercase")]
@@ -153,52 +186,63 @@ enum VisionDetailLevel {
     Low,
     High,
 }
+
 #[derive(Deserialize, Serialize, Debug)]
 struct ReasoningDetail {
     reasoning: ReasoningDetailType,
 }
+
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "lowercase")]
 enum ReasoningDetailType {
-    Encrypted {
-        #[serde(rename = "type")]
-        #[serde(default = "reasoning_encrypted")]
-        reasoning_type: String,
-        data: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        format: Option<ReasoningFormat>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        id: Option<String>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        index: Option<u32>,
-    },
-    Summary {
-        #[serde(rename = "type")]
-        #[serde(default = "reasoning_summary")]
-        reasoning_type: String,
-        summary: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        format: Option<ReasoningFormat>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        id: Option<String>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        index: Option<u32>,
-    },
-    Text {
-        #[serde(rename = "type")]
-        #[serde(default = "reasoning_text")]
-        reasoning_type: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        format: Option<ReasoningFormat>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        id: Option<String>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        index: Option<u32>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        signature: Option<String>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        text: Option<String>,
-    },
+    Encrypted(ReasoningEncrypted),
+    Summary(ReasoningSummary),
+    Text(ReasoningText),
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct ReasoningEncrypted {
+    #[serde(rename = "type")]
+    #[serde(default = "reasoning_encrypted")]
+    reasoning_type: String,
+    data: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    format: Option<ReasoningFormat>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    index: Option<u32>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct ReasoningSummary {
+    #[serde(rename = "type")]
+    #[serde(default = "reasoning_summary")]
+    reasoning_type: String,
+    summary: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    format: Option<ReasoningFormat>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    index: Option<u32>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct ReasoningText {
+    #[serde(rename = "type")]
+    #[serde(default = "reasoning_text")]
+    reasoning_type: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    format: Option<ReasoningFormat>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    index: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    signature: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    text: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
