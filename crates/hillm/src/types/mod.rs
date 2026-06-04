@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 pub mod message;
 pub mod request;
+pub mod response;
 use crate::func_return_string;
 
 #[derive(Deserialize, Serialize, Debug)]
