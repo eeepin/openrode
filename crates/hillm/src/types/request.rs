@@ -97,94 +97,121 @@ enum ImageConfig {
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(untagged)]
 enum Plugin {
-    AutoRouter {
-        #[serde(default = "auto_router")]
-        id: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        allowed_models: Option<Vec<String>>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        cost_quality_tradeoff: Option<u8>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        enabled: Option<bool>,
-    },
-    ContextCompression {
-        #[serde(default = "context_compression")]
-        id: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        enabled: Option<bool>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        engine: Option<CompressionEngine>,
-    },
-    FileParser {
-        #[serde(default = "file_parser")]
-        id: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        enabled: Option<bool>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pdf: Option<Pdf>,
-    },
-    Fusion {
-        #[serde(default = "fusion")]
-        id: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        enabled: Option<bool>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        analysis_models: Option<Vec<String>>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        max_tool_calls: Option<u8>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        model: Option<String>,
-    },
-    Moderation {
-        #[serde(default = "moderation")]
-        id: String,
-    },
-    ParetoRouter {
-        #[serde(default = "pareto_router")]
-        id: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        enabled: Option<bool>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        min_coding_score: Option<f32>,
-    },
-    ResponseHealing {
-        #[serde(default = "response_healing")]
-        id: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        enabled: Option<bool>,
-    },
-    Web {
-        #[serde(default = "web")]
-        id: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        enabled: Option<bool>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        engine: Option<WebEngine>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        exclude_domains: Option<Vec<String>>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        include_domains: Option<Vec<String>>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        max_results: Option<u32>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        max_uses: Option<u32>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        search_prompt: Option<String>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        user_location: Option<UserLocation>,
-    },
-    WebFetch {
-        #[serde(default = "web_fetch")]
-        id: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        allowed_domains: Option<Vec<String>>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        blocked_domains: Option<Vec<String>>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        max_content_tokens: Option<u32>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        max_uses: Option<u32>,
-    },
+    AutoRouter(AutoRouterPlugin),
+    ContextCompression(ContextCompressionPlugin),
+    FileParser(FileParserPlugin),
+    Fusion(FusionPlugin),
+    Moderation(ModerationPlugin),
+    ParetoRouter(ParetoRouterPlugin),
+    ResponseHealing(ResponseHealingPlugin),
+    Web(WebPlugin),
+    WebFetch(WebFetchPlugin),
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct AutoRouterPlugin {
+    #[serde(default = "auto_router")]
+    id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    allowed_models: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    cost_quality_tradeoff: Option<u8>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    enabled: Option<bool>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct ContextCompressionPlugin {
+    #[serde(default = "context_compression")]
+    id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    enabled: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    engine: Option<CompressionEngine>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct FileParserPlugin {
+    #[serde(default = "file_parser")]
+    id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    enabled: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pdf: Option<Pdf>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct FusionPlugin {
+    #[serde(default = "fusion")]
+    id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    enabled: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    analysis_models: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    max_tool_calls: Option<u8>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    model: Option<String>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct ModerationPlugin {
+    #[serde(default = "moderation")]
+    id: String,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct ParetoRouterPlugin {
+    #[serde(default = "pareto_router")]
+    id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    enabled: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    min_coding_score: Option<f32>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct ResponseHealingPlugin {
+    #[serde(default = "response_healing")]
+    id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    enabled: Option<bool>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct WebPlugin {
+    #[serde(default = "web")]
+    id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    enabled: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    engine: Option<WebEngine>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    exclude_domains: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    include_domains: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    max_results: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    max_uses: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    search_prompt: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    user_location: Option<UserLocation>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct WebFetchPlugin {
+    #[serde(default = "web_fetch")]
+    id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    allowed_domains: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    blocked_domains: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    max_content_tokens: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    max_uses: Option<u32>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -388,33 +415,48 @@ enum SummaryType {
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(untagged)]
 enum ResponseFormat {
-    Grammar {
-        #[serde(rename = "type")]
-        #[serde(default = "grammar")]
-        format_type: String,
-        grammar: String,
-    },
-    JsonObject {
-        #[serde(rename = "type")]
-        #[serde(default = "json_object")]
-        format_type: String,
-    },
-    JsonSchema {
-        #[serde(rename = "type")]
-        #[serde(default = "json_schema")]
-        format_type: String,
-        json_schema: JsonSchemaConfig,
-    },
-    Python {
-        #[serde(rename = "type")]
-        #[serde(default = "python")]
-        format_type: String,
-    },
-    Text {
-        #[serde(rename = "type")]
-        #[serde(default = "text")]
-        format_type: String,
-    },
+    Grammar(ResponseFormatGrammar),
+    JsonObject(ResponseFormatJsonObject),
+    JsonSchema(ResponseFormatJsonSchema),
+    Python(ResponseFormatPython),
+    Text(ResponseFormatText),
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct ResponseFormatGrammar {
+    #[serde(rename = "type")]
+    #[serde(default = "grammar")]
+    format_type: String,
+    grammar: String,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct ResponseFormatJsonObject {
+    #[serde(rename = "type")]
+    #[serde(default = "json_object")]
+    format_type: String,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct ResponseFormatJsonSchema {
+    #[serde(rename = "type")]
+    #[serde(default = "json_schema")]
+    format_type: String,
+    json_schema: JsonSchemaConfig,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct ResponseFormatPython {
+    #[serde(rename = "type")]
+    #[serde(default = "python")]
+    format_type: String,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct ResponseFormatText {
+    #[serde(rename = "type")]
+    #[serde(default = "text")]
+    format_type: String,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -448,36 +490,51 @@ enum Stop {
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(untagged)]
 enum StopServerToolsWhen {
-    FinishReasonIs {
-        #[serde(rename = "type")]
-        #[serde(default = "finish_reason_is")]
-        stop_type: String,
-        reason: String,
-    },
-    HasToolCall {
-        #[serde(rename = "type")]
-        #[serde(default = "has_tool_call")]
-        stop_type: String,
-        tool_name: String,
-    },
-    MaxCost {
-        #[serde(rename = "type")]
-        #[serde(default = "max_cost")]
-        stop_type: String,
-        max_cost_in_dollars: f32,
-    },
-    MaxTokensUsed {
-        #[serde(rename = "type")]
-        #[serde(default = "max_tokens_used")]
-        stop_type: String,
-        max_tokens: u32,
-    },
-    StepCountIs {
-        #[serde(rename = "type")]
-        #[serde(default = "step_count_is")]
-        stop_type: String,
-        step_count: u32,
-    },
+    FinishReasonIs(StopServerToolsWhenFinishReasonIs),
+    HasToolCall(StopServerToolsWhenHasToolCall),
+    MaxCost(StopServerToolsWhenMaxCost),
+    MaxTokensUsed(StopServerToolsWhenMaxTokensUsed),
+    StepCountIs(StopServerToolsWhenStepCountIs),
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct StopServerToolsWhenFinishReasonIs {
+    #[serde(rename = "type")]
+    #[serde(default = "finish_reason_is")]
+    stop_type: String,
+    reason: String,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct StopServerToolsWhenHasToolCall {
+    #[serde(rename = "type")]
+    #[serde(default = "has_tool_call")]
+    stop_type: String,
+    tool_name: String,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct StopServerToolsWhenMaxCost {
+    #[serde(rename = "type")]
+    #[serde(default = "max_cost")]
+    stop_type: String,
+    max_cost_in_dollars: f32,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct StopServerToolsWhenMaxTokensUsed {
+    #[serde(rename = "type")]
+    #[serde(default = "max_tokens_used")]
+    stop_type: String,
+    max_tokens: u32,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct StopServerToolsWhenStepCountIs {
+    #[serde(rename = "type")]
+    #[serde(default = "step_count_is")]
+    stop_type: String,
+    step_count: u32,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -498,16 +555,22 @@ enum ToolChoiceType {
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(untagged)]
 enum ToolChoiceConfig {
-    ChatNamedToolChoice {
-        #[serde(rename = "type")]
-        #[serde(default = "function")]
-        tool_choice_type: String,
-        function: FunctionWithName,
-    },
-    ChatServerToolChoice {
-        #[serde(rename = "type")]
-        tool_choice_type: String,
-    },
+    ChatNamedToolChoice(ChatNamedToolChoiceConfig),
+    ChatServerToolChoice(ChatServerToolChoiceConfig),
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct ChatNamedToolChoiceConfig {
+    #[serde(rename = "type")]
+    #[serde(default = "function")]
+    tool_choice_type: String,
+    function: FunctionWithName,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct ChatServerToolChoiceConfig {
+    #[serde(rename = "type")]
+    tool_choice_type: String,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -529,69 +592,90 @@ struct Function {
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(untagged)]
 enum Tool {
-    BaseTool {
-        #[serde(rename = "type")]
-        #[serde(default = "function")]
-        tool_type: String,
-        function: Function,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        cache_control: Option<CacheControl>,
-    },
-    DatetimeServerTool {
-        #[serde(rename = "type")]
-        #[serde(default = "openrouter_datetime")]
-        tool_type: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        parameters: Option<TimeZone>,
-    },
-    ImageGenerationServerToolOpenRouter {
-        #[serde(rename = "type")]
-        #[serde(default = "openrouter_image_generation")]
-        tool_type: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        parameters: Option<ModelName>,
-    },
-    ChatSearchModelsServerTool {
-        #[serde(rename = "type")]
-        #[serde(default = "openrouter_experimental_search_models")]
-        tool_type: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        parameters: Option<MaxResults>,
-    },
-    WebFetchServerTool {
-        #[serde(rename = "type")]
-        #[serde(default = "openrouter_web_fetch")]
-        tool_type: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        parameters: Option<WebFetchServerToolParam>,
-    },
-    OpenRouterWebSearchServerTool {
-        #[serde(rename = "type")]
-        #[serde(default = "openrouter_web_search")]
-        tool_type: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        parameters: Option<OpenRouterWebSearchServerToolParam>,
-    },
-    ChatWebSearchShorthand {
-        #[serde(rename = "type")]
-        tool_type: ChatWebSearchShorthandType,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        allowed_domains: Option<Vec<String>>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        excluded_domains: Option<Vec<String>>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        max_results: Option<u32>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        max_total_results: Option<u32>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        engine: Option<WebSearchToolEngine>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        search_context_size: Option<SearchContextSize>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        user_location: Option<UserLocation>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        parameters: Option<OpenRouterWebSearchServerToolParam>,
-    },
+    Function(FunctionTool),
+    Datetime(DatetimeServerTool),
+    OpenRouterImageGeneration(OpenRouterImageGenerationTool),
+    ChatSearchModels(ChatSearchModelsServerTool),
+    WebFetch(WebFetchServerTool),
+    OpenRouterWebSearch(OpenRouterWebSearchServerTool),
+    ChatWebSearch(ChatWebSearchTool),
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct FunctionTool {
+    #[serde(rename = "type")]
+    #[serde(default = "function")]
+    tool_type: String,
+    function: Function,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    cache_control: Option<CacheControl>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct DatetimeServerTool {
+    #[serde(rename = "type")]
+    #[serde(default = "openrouter_datetime")]
+    tool_type: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    parameters: Option<TimeZone>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct OpenRouterImageGenerationTool {
+    #[serde(rename = "type")]
+    #[serde(default = "openrouter_image_generation")]
+    tool_type: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    parameters: Option<ModelName>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct ChatSearchModelsServerTool {
+    #[serde(rename = "type")]
+    #[serde(default = "openrouter_experimental_search_models")]
+    tool_type: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    parameters: Option<MaxResults>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct WebFetchServerTool {
+    #[serde(rename = "type")]
+    #[serde(default = "openrouter_web_fetch")]
+    tool_type: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    parameters: Option<WebFetchServerToolParam>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct OpenRouterWebSearchServerTool {
+    #[serde(rename = "type")]
+    #[serde(default = "openrouter_web_search")]
+    tool_type: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    parameters: Option<OpenRouterWebSearchServerToolParam>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct ChatWebSearchTool {
+    #[serde(rename = "type")]
+    tool_type: ChatWebSearchToolType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    allowed_domains: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    excluded_domains: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    max_results: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    max_total_results: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    engine: Option<WebSearchToolEngine>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    search_context_size: Option<SearchContextSize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    user_location: Option<UserLocation>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    parameters: Option<OpenRouterWebSearchServerToolParam>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -674,7 +758,7 @@ enum SearchContextSize {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-enum ChatWebSearchShorthandType {
+enum ChatWebSearchToolType {
     #[serde(rename = "web_search")]
     WebSearch,
     #[serde(rename = "web_search_preview")]
