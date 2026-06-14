@@ -1,3 +1,4 @@
+use reqwest::header::{HeaderMap, HeaderName};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -7,25 +8,29 @@ pub struct RequestHeader {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "X-OpenRouter-Metadata")]
     xopen_router_metadata: Option<XOpenRouterMetadata>,
+    #[serde(rename = "Content-Type")]
+    content_type: ContentType,
 }
 
 impl RequestHeader {
     pub fn new() -> Self {
         Self {
-            authorization: build_header_auth(std::env::var("API_KEY").unwrap_or_default().into()),
+            authorization: String::new(),
             xopen_router_metadata: Some(XOpenRouterMetadata::Disabled),
+            content_type: ContentType::Json,
         }
     }
 
     pub fn build(auth: String, xopen_router_metadata: Option<XOpenRouterMetadata>) -> Self {
         Self {
-            authorization: build_header_auth(auth),
+            authorization: format!("Bearer {}", auth),
             xopen_router_metadata: xopen_router_metadata,
+            content_type: ContentType::Json,
         }
     }
 
     pub fn with_auth(mut self, auth: String) -> Self {
-        self.authorization = build_header_auth(auth);
+        self.authorization = format!("Bearer {}", auth);
         self
     }
 
@@ -38,6 +43,21 @@ impl RequestHeader {
     }
 }
 
+impl From<RequestHeader> for HeaderMap {
+    fn from(header: RequestHeader) -> Self {
+        let mut map = HeaderMap::new();
+        let header = serde_json::to_value(header).unwrap();
+        let value = header.as_object().unwrap();
+        for (k, v) in value {
+            map.insert(
+                k.parse::<HeaderName>().unwrap(),
+                serde_json::to_string(v).unwrap().parse().unwrap(),
+            );
+        }
+        map
+    }
+}
+
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum XOpenRouterMetadata {
@@ -45,6 +65,8 @@ pub enum XOpenRouterMetadata {
     Enabled,
 }
 
-fn build_header_auth(auth: String) -> String {
-    "Bearer ".to_string() + &auth
+#[derive(Deserialize, Serialize, Debug)]
+pub enum ContentType {
+    #[serde(rename = "application/json")]
+    Json,
 }
