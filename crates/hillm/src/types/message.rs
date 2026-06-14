@@ -3,6 +3,7 @@ use crate::{func_return_string, func_return_string_};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug)]
+#[serde(transparent)]
 pub struct Messages {
     pub messages: Vec<Message>,
 }
