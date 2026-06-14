@@ -47,12 +47,12 @@ impl From<RequestHeader> for HeaderMap {
     fn from(header: RequestHeader) -> Self {
         let mut map = HeaderMap::new();
         let header = serde_json::to_value(header).unwrap();
-        let value = header.as_object().unwrap();
-        for (k, v) in value {
-            map.insert(
-                k.parse::<HeaderName>().unwrap(),
-                serde_json::to_string(v).unwrap().parse().unwrap(),
-            );
+        if let Some(obj) = header.as_object() {
+            for (k, v) in obj {
+                if let Some(s) = v.as_str() {
+                    map.insert(k.parse::<HeaderName>().unwrap(), s.parse().unwrap());
+                }
+            }
         }
         map
     }
