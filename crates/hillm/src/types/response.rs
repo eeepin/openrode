@@ -204,12 +204,12 @@ struct PromptTokensDetails {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct StreamChunk {
+pub struct ResponseStreamChunk {
     pub id: String,
     pub created: u32,
     pub model: String,
-    pub object: StreamChunkType,
-    pub choices: Vec<StreamChoice>,
+    pub object: ResponseStreamChunkType,
+    pub choices: Vec<ResponseStreamChoice>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub system_fingerprint: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -219,15 +219,15 @@ pub struct StreamChunk {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-pub enum StreamChunkType {
+pub enum ResponseStreamChunkType {
     #[serde(rename = "chat.completion.chunk")]
     ChatCompletionChunk,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct StreamChoice {
+pub struct ResponseStreamChoice {
     pub index: u32,
-    pub delta: StreamDelta,
+    pub delta: ResponseStreamDelta,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub finish_reason: Option<FinishReason>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -235,19 +235,19 @@ pub struct StreamChoice {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct StreamDelta {
+pub struct ResponseStreamDelta {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub role: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub tool_calls: Option<Vec<StreamToolCall>>,
+    pub tool_calls: Option<Vec<ResponseStreamToolCall>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reasoning: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct StreamToolCall {
+pub struct ResponseStreamToolCall {
     pub index: u32,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
@@ -255,11 +255,11 @@ pub struct StreamToolCall {
     #[serde(default = "function")]
     pub tool_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub function: Option<StreamFunctionCall>,
+    pub function: Option<ResponseStreamFunctionCall>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct StreamFunctionCall {
+pub struct ResponseStreamFunctionCall {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
