@@ -8,7 +8,28 @@ use thiserror;
 pub enum HiError {
     #[error("Error when doing API calls: {0}")]
     APICallError(APICallError),
+    #[error("Error when parsing response: {0}")]
+    ParseError(ParseError),
 }
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct ParseError {
+    pub message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub raw_body: Option<String>,
+}
+
+impl std::fmt::Display for ParseError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Some(raw_body) = &self.raw_body {
+            write!(f, "[{}] [Raw body: {}]", &self.message, raw_body)
+        } else {
+            write!(f, "[{}]", &self.message)
+        }
+    }
+}
+
+impl std::error::Error for ParseError {}
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct APICallError {

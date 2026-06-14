@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::types::message::AssistantMessage;
+use crate::{func_return_string, types::message::AssistantMessage};
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Response {
@@ -31,7 +31,7 @@ struct Choice {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-enum FinishReason {
+pub enum FinishReason {
     #[serde(rename = "tool_calls")]
     ToolCalls,
     #[serde(rename = "stop")]
@@ -45,7 +45,7 @@ enum FinishReason {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct LogProbs {
+pub struct LogProbs {
     #[serde(skip_serializing_if = "Option::is_none")]
     content: Option<Vec<LogProb>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -76,7 +76,7 @@ enum ResponseType {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct OpenRouterMetaData {
+pub struct OpenRouterMetaData {
     attempt: u32,
     endpoints: Endpoints,
     is_byok: bool,
@@ -159,7 +159,7 @@ enum PipelineType {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct Usage {
+pub struct Usage {
     completion_tokens: u32,
     prompt_tokens: u32,
     total_tokens: u32,
@@ -202,3 +202,68 @@ struct PromptTokensDetails {
     cached_tokens: u32,
     video_tokens: u32,
 }
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct StreamChunk {
+    pub id: String,
+    pub created: u32,
+    pub model: String,
+    pub object: StreamChunkType,
+    pub choices: Vec<StreamChoice>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub system_fingerprint: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub openrouter_metadata: Option<OpenRouterMetaData>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub usage: Option<Usage>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub enum StreamChunkType {
+    #[serde(rename = "chat.completion.chunk")]
+    ChatCompletionChunk,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct StreamChoice {
+    pub index: u32,
+    pub delta: StreamDelta,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub finish_reason: Option<FinishReason>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub logprobs: Option<LogProbs>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct StreamDelta {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub role: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub content: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_calls: Option<Vec<StreamToolCall>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reasoning: Option<String>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct StreamToolCall {
+    pub index: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(rename = "type")]
+    #[serde(default = "function")]
+    pub tool_type: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub function: Option<StreamFunctionCall>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct StreamFunctionCall {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub arguments: Option<String>,
+}
+
+func_return_string!(function);
