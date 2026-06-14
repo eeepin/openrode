@@ -7,67 +7,67 @@ use serde_json::Value;
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Request {
-    messages: Messages,
+    pub messages: Messages,
     #[serde(skip_serializing_if = "Option::is_none")]
-    cache_control: Option<CacheControl>,
+    pub cache_control: Option<CacheControl>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    debug: Option<DebugFlag>,
+    pub debug: Option<DebugFlag>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    frequency_penalty: Option<f32>,
+    pub frequency_penalty: Option<f32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    image_config: Option<ImageConfig>,
+    pub image_config: Option<ImageConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    logit_bias: Option<HashMap<String, f32>>,
+    pub logit_bias: Option<HashMap<String, f32>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    logprobs: Option<bool>,
+    pub logprobs: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    max_completion_tokens: Option<u32>,
+    pub max_completion_tokens: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    metadata: Option<HashMap<String, String>>,
+    pub metadata: Option<HashMap<String, String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    modalities: Option<Modalities>,
+    pub modalities: Option<Modalities>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    model: Option<String>,
+    pub model: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    models: Option<Vec<String>>,
+    pub models: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    parallel_tool_calls: Option<bool>,
+    pub parallel_tool_calls: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    plugins: Option<Vec<Plugin>>,
+    pub plugins: Option<Vec<Plugin>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    presence_penalty: Option<f32>,
+    pub presence_penalty: Option<f32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    provider: Option<Provider>,
+    pub provider: Option<Provider>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    reasoning: Option<Reasoning>,
+    pub reasoning: Option<Reasoning>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    response_format: Option<ResponseFormat>,
+    pub response_format: Option<ResponseFormat>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    seed: Option<u32>,
+    pub seed: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    service_tier: Option<ServiceTier>,
+    pub service_tier: Option<ServiceTier>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    session_id: Option<String>,
+    pub session_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    stop: Option<Stop>,
+    pub stop: Option<Stop>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    stop_server_tools_when: Option<Vec<StopServerToolsWhen>>,
+    pub stop_server_tools_when: Option<Vec<StopServerToolsWhen>>,
     #[serde(default = "default_false")]
-    stream: bool,
+    pub stream: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
-    temperature: Option<f32>,
+    pub temperature: Option<f32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    tool_choice: Option<ToolChoice>,
+    pub tool_choice: Option<ToolChoice>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    tools: Option<Vec<Tool>>,
+    pub tools: Option<Vec<Tool>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    top_logprobs: Option<u8>,
+    pub top_logprobs: Option<u8>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    top_p: Option<f32>,
+    pub top_p: Option<f32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    trace: Option<Trace>,
+    pub trace: Option<Trace>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    user: Option<String>,
+    pub user: Option<String>,
 }
 
 fn default_false() -> bool {
@@ -75,28 +75,28 @@ fn default_false() -> bool {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct DebugFlag {
+pub struct DebugFlag {
     #[serde(skip_serializing_if = "Option::is_none")]
     echo_upstream_body: Option<bool>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "lowercase")]
-enum Modalities {
+pub enum Modalities {
     Text,
     Image,
     Audio,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-enum ImageConfig {
+pub enum ImageConfig {
     ImageConfigStr(String),
     ImageConfigDouble(f32),
 }
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(untagged)]
-enum Plugin {
+pub enum Plugin {
     AutoRouter(AutoRouterPlugin),
     ContextCompression(ContextCompressionPlugin),
     FileParser(FileParserPlugin),
@@ -109,7 +109,7 @@ enum Plugin {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct AutoRouterPlugin {
+pub struct AutoRouterPlugin {
     #[serde(default = "auto_router")]
     id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -121,7 +121,7 @@ struct AutoRouterPlugin {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct ContextCompressionPlugin {
+pub struct ContextCompressionPlugin {
     #[serde(default = "context_compression")]
     id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -131,7 +131,7 @@ struct ContextCompressionPlugin {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct FileParserPlugin {
+pub struct FileParserPlugin {
     #[serde(default = "file_parser")]
     id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -141,7 +141,7 @@ struct FileParserPlugin {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct FusionPlugin {
+pub struct FusionPlugin {
     #[serde(default = "fusion")]
     id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -155,13 +155,13 @@ struct FusionPlugin {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct ModerationPlugin {
+pub struct ModerationPlugin {
     #[serde(default = "moderation")]
     id: String,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct ParetoRouterPlugin {
+pub struct ParetoRouterPlugin {
     #[serde(default = "pareto_router")]
     id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -171,7 +171,7 @@ struct ParetoRouterPlugin {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct ResponseHealingPlugin {
+pub struct ResponseHealingPlugin {
     #[serde(default = "response_healing")]
     id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -179,7 +179,7 @@ struct ResponseHealingPlugin {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct WebPlugin {
+pub struct WebPlugin {
     #[serde(default = "web")]
     id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -201,7 +201,7 @@ struct WebPlugin {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct WebFetchPlugin {
+pub struct WebFetchPlugin {
     #[serde(default = "web_fetch")]
     id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -215,18 +215,18 @@ struct WebFetchPlugin {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-enum CompressionEngine {
+pub enum CompressionEngine {
     #[serde(rename = "middle-out")]
     MiddleOut,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct Pdf {
+pub struct Pdf {
     engine: PdfEngine,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-enum PdfEngine {
+pub enum PdfEngine {
     #[serde(rename = "mistral-ocr")]
     MistralOCR,
     #[serde(rename = "native")]
@@ -236,7 +236,7 @@ enum PdfEngine {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-enum WebEngine {
+pub enum WebEngine {
     #[serde(rename = "native")]
     Native,
     #[serde(rename = "exa")]
@@ -248,7 +248,7 @@ enum WebEngine {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct UserLocation {
+pub struct UserLocation {
     #[serde(rename = "approximate")]
     user_location_type: UserLocationType,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -262,13 +262,13 @@ struct UserLocation {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-enum UserLocationType {
+pub enum UserLocationType {
     #[serde(rename = "approximate")]
     Approximate,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct Provider {
+pub struct Provider {
     #[serde(skip_serializing_if = "Option::is_none")]
     allow_fallbacks: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -300,7 +300,7 @@ struct Provider {
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "lowercase")]
-enum DataCollection {
+pub enum DataCollection {
     Allow,
     Deny,
 }
@@ -308,7 +308,7 @@ enum DataCollection {
 // The object specifying the maximum price you want to pay for this request.
 // USD price per million tokens, for prompt and completion.
 #[derive(Deserialize, Serialize, Debug)]
-struct MaxPrice {
+pub struct MaxPrice {
     #[serde(skip_serializing_if = "Option::is_none")]
     audio: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -323,13 +323,13 @@ struct MaxPrice {
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(untagged)]
-enum Latency {
+pub enum Latency {
     Double(f32),
     Obj(PercentileLatencyCutoffs),
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct PercentileLatencyCutoffs {
+pub struct PercentileLatencyCutoffs {
     #[serde(skip_serializing_if = "Option::is_none")]
     p50: Option<f32>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -342,7 +342,7 @@ struct PercentileLatencyCutoffs {
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "lowercase")]
-enum Quantizations {
+pub enum Quantizations {
     Int4,
     Int8,
     Fp4,
@@ -356,14 +356,14 @@ enum Quantizations {
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(untagged)]
-enum SortStrategy {
+pub enum SortStrategy {
     ProviderSort(ProviderSortStrategy),
     ProviderSortConfig(ProviderSortConfigStrategy),
 }
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "lowercase")]
-enum ProviderSortStrategy {
+pub enum ProviderSortStrategy {
     Price,
     Throughput,
     Latency,
@@ -372,13 +372,13 @@ enum ProviderSortStrategy {
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "lowercase")]
-enum PartitioningStrategy {
+pub enum PartitioningStrategy {
     Model,
     None,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct ProviderSortConfigStrategy {
+pub struct ProviderSortConfigStrategy {
     #[serde(skip_serializing_if = "Option::is_none")]
     by: Option<ProviderSortStrategy>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -386,7 +386,7 @@ struct ProviderSortConfigStrategy {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct Reasoning {
+pub struct Reasoning {
     #[serde(skip_serializing_if = "Option::is_none")]
     effort: Option<EffortType>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -395,7 +395,7 @@ struct Reasoning {
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "lowercase")]
-enum EffortType {
+pub enum EffortType {
     Xhigh,
     High,
     Medium,
@@ -406,7 +406,7 @@ enum EffortType {
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "lowercase")]
-enum SummaryType {
+pub enum SummaryType {
     Auto,
     Concise,
     Detailed,
@@ -414,7 +414,7 @@ enum SummaryType {
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(untagged)]
-enum ResponseFormat {
+pub enum ResponseFormat {
     Grammar(ResponseFormatGrammar),
     JsonObject(ResponseFormatJsonObject),
     JsonSchema(ResponseFormatJsonSchema),
@@ -423,7 +423,7 @@ enum ResponseFormat {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct ResponseFormatGrammar {
+pub struct ResponseFormatGrammar {
     #[serde(rename = "type")]
     #[serde(default = "grammar")]
     format_type: String,
@@ -431,14 +431,14 @@ struct ResponseFormatGrammar {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct ResponseFormatJsonObject {
+pub struct ResponseFormatJsonObject {
     #[serde(rename = "type")]
     #[serde(default = "json_object")]
     format_type: String,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct ResponseFormatJsonSchema {
+pub struct ResponseFormatJsonSchema {
     #[serde(rename = "type")]
     #[serde(default = "json_schema")]
     format_type: String,
@@ -446,21 +446,21 @@ struct ResponseFormatJsonSchema {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct ResponseFormatPython {
+pub struct ResponseFormatPython {
     #[serde(rename = "type")]
     #[serde(default = "python")]
     format_type: String,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct ResponseFormatText {
+pub struct ResponseFormatText {
     #[serde(rename = "type")]
     #[serde(default = "text")]
     format_type: String,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct JsonSchemaConfig {
+pub struct JsonSchemaConfig {
     name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     description: Option<String>,
@@ -472,7 +472,7 @@ struct JsonSchemaConfig {
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "lowercase")]
-enum ServiceTier {
+pub enum ServiceTier {
     Auto,
     Default,
     Flex,
@@ -482,14 +482,14 @@ enum ServiceTier {
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(untagged)]
-enum Stop {
+pub enum Stop {
     Single(String),
     Muilt(Vec<String>),
 }
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(untagged)]
-enum StopServerToolsWhen {
+pub enum StopServerToolsWhen {
     FinishReasonIs(StopServerToolsWhenFinishReasonIs),
     HasToolCall(StopServerToolsWhenHasToolCall),
     MaxCost(StopServerToolsWhenMaxCost),
@@ -498,7 +498,7 @@ enum StopServerToolsWhen {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct StopServerToolsWhenFinishReasonIs {
+pub struct StopServerToolsWhenFinishReasonIs {
     #[serde(rename = "type")]
     #[serde(default = "finish_reason_is")]
     stop_type: String,
@@ -506,7 +506,7 @@ struct StopServerToolsWhenFinishReasonIs {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct StopServerToolsWhenHasToolCall {
+pub struct StopServerToolsWhenHasToolCall {
     #[serde(rename = "type")]
     #[serde(default = "has_tool_call")]
     stop_type: String,
@@ -514,7 +514,7 @@ struct StopServerToolsWhenHasToolCall {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct StopServerToolsWhenMaxCost {
+pub struct StopServerToolsWhenMaxCost {
     #[serde(rename = "type")]
     #[serde(default = "max_cost")]
     stop_type: String,
@@ -522,7 +522,7 @@ struct StopServerToolsWhenMaxCost {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct StopServerToolsWhenMaxTokensUsed {
+pub struct StopServerToolsWhenMaxTokensUsed {
     #[serde(rename = "type")]
     #[serde(default = "max_tokens_used")]
     stop_type: String,
@@ -530,7 +530,7 @@ struct StopServerToolsWhenMaxTokensUsed {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct StopServerToolsWhenStepCountIs {
+pub struct StopServerToolsWhenStepCountIs {
     #[serde(rename = "type")]
     #[serde(default = "step_count_is")]
     stop_type: String,
@@ -539,14 +539,14 @@ struct StopServerToolsWhenStepCountIs {
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(untagged)]
-enum ToolChoice {
+pub enum ToolChoice {
     Choice(ToolChoiceType),
     Config(ToolChoiceConfig),
 }
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "lowercase")]
-enum ToolChoiceType {
+pub enum ToolChoiceType {
     Auto,
     None,
     Required,
@@ -554,13 +554,13 @@ enum ToolChoiceType {
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(untagged)]
-enum ToolChoiceConfig {
+pub enum ToolChoiceConfig {
     ChatNamedToolChoice(ChatNamedToolChoiceConfig),
     ChatServerToolChoice(ChatServerToolChoiceConfig),
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct ChatNamedToolChoiceConfig {
+pub struct ChatNamedToolChoiceConfig {
     #[serde(rename = "type")]
     #[serde(default = "function")]
     tool_choice_type: String,
@@ -568,18 +568,18 @@ struct ChatNamedToolChoiceConfig {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct ChatServerToolChoiceConfig {
+pub struct ChatServerToolChoiceConfig {
     #[serde(rename = "type")]
     tool_choice_type: String,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct FunctionWithName {
+pub struct FunctionWithName {
     name: String,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct Function {
+pub struct Function {
     name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     description: Option<String>,
@@ -591,7 +591,7 @@ struct Function {
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(untagged)]
-enum Tool {
+pub enum Tool {
     Function(FunctionTool),
     Datetime(DatetimeServerTool),
     OpenRouterImageGeneration(OpenRouterImageGenerationTool),
@@ -602,7 +602,7 @@ enum Tool {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct FunctionTool {
+pub struct FunctionTool {
     #[serde(rename = "type")]
     #[serde(default = "function")]
     tool_type: String,
@@ -612,7 +612,7 @@ struct FunctionTool {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct DatetimeServerTool {
+pub struct DatetimeServerTool {
     #[serde(rename = "type")]
     #[serde(default = "openrouter_datetime")]
     tool_type: String,
@@ -621,7 +621,7 @@ struct DatetimeServerTool {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct OpenRouterImageGenerationTool {
+pub struct OpenRouterImageGenerationTool {
     #[serde(rename = "type")]
     #[serde(default = "openrouter_image_generation")]
     tool_type: String,
@@ -630,7 +630,7 @@ struct OpenRouterImageGenerationTool {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct ChatSearchModelsServerTool {
+pub struct ChatSearchModelsServerTool {
     #[serde(rename = "type")]
     #[serde(default = "openrouter_experimental_search_models")]
     tool_type: String,
@@ -639,7 +639,7 @@ struct ChatSearchModelsServerTool {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct WebFetchServerTool {
+pub struct WebFetchServerTool {
     #[serde(rename = "type")]
     #[serde(default = "openrouter_web_fetch")]
     tool_type: String,
@@ -648,7 +648,7 @@ struct WebFetchServerTool {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct OpenRouterWebSearchServerTool {
+pub struct OpenRouterWebSearchServerTool {
     #[serde(rename = "type")]
     #[serde(default = "openrouter_web_search")]
     tool_type: String,
@@ -657,7 +657,7 @@ struct OpenRouterWebSearchServerTool {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct ChatWebSearchTool {
+pub struct ChatWebSearchTool {
     #[serde(rename = "type")]
     tool_type: ChatWebSearchToolType,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -679,25 +679,25 @@ struct ChatWebSearchTool {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct TimeZone {
+pub struct TimeZone {
     #[serde(skip_serializing_if = "Option::is_none")]
     timezone: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct ModelName {
+pub struct ModelName {
     #[serde(skip_serializing_if = "Option::is_none")]
     model: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct MaxResults {
+pub struct MaxResults {
     #[serde(skip_serializing_if = "Option::is_none")]
     max_results: Option<u8>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct WebFetchServerToolParam {
+pub struct WebFetchServerToolParam {
     #[serde(skip_serializing_if = "Option::is_none")]
     allowed_domains: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -712,7 +712,7 @@ struct WebFetchServerToolParam {
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "lowercase")]
-enum WebFetchServerToolEngine {
+pub enum WebFetchServerToolEngine {
     Auto,
     Native,
     Openrouter,
@@ -722,7 +722,7 @@ enum WebFetchServerToolEngine {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct OpenRouterWebSearchServerToolParam {
+pub struct OpenRouterWebSearchServerToolParam {
     #[serde(skip_serializing_if = "Option::is_none")]
     allowed_domains: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -741,7 +741,7 @@ struct OpenRouterWebSearchServerToolParam {
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "lowercase")]
-enum WebSearchToolEngine {
+pub enum WebSearchToolEngine {
     Auto,
     Native,
     Exa,
@@ -751,14 +751,14 @@ enum WebSearchToolEngine {
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "lowercase")]
-enum SearchContextSize {
+pub enum SearchContextSize {
     Low,
     Medium,
     High,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-enum ChatWebSearchToolType {
+pub enum ChatWebSearchToolType {
     #[serde(rename = "web_search")]
     WebSearch,
     #[serde(rename = "web_search_preview")]
@@ -770,7 +770,7 @@ enum ChatWebSearchToolType {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-struct Trace {
+pub struct Trace {
     #[serde(skip_serializing_if = "Option::is_none")]
     generation_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

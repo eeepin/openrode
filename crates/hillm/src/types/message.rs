@@ -4,12 +4,12 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Messages {
-    messages: Vec<Message>,
+    pub messages: Vec<Message>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(untagged)]
-enum Message {
+pub enum Message {
     System(SystemMessage),
     Developer(DeveloperMessage),
     User(UserMessage),
