@@ -197,10 +197,14 @@ struct CostDetails {
 
 #[derive(Deserialize, Serialize, Debug)]
 struct PromptTokensDetails {
-    audio_tokens: u32,
-    cache_write_tokens: u32,
-    cached_tokens: u32,
-    video_tokens: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    audio_tokens: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    cache_write_tokens: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    cached_tokens: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    video_tokens: Option<u32>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]

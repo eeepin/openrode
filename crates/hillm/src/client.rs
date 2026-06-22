@@ -184,14 +184,14 @@ mod tests {
     #[tokio::test]
     #[ignore]
     async fn test_chat_basic() {
-        let config = OpenRouterConfig::new();
+        let config = OpenRouterConfig::new()
+            .with_base_url("https://dashscope.aliyuncs.com/compatible-mode/v1");
         let client = Client::build(reqwest::Client::new(), config);
-
         let request: Request = serde_json::from_value(json!({
             "messages": [
                 {"role": "user", "content": "Say hello"}
             ],
-            "model": "openai/gpt-3.5-turbo"
+            "model": "qwen3.7-plus"
         }))
         .unwrap();
 
