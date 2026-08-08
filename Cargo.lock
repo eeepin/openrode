@@ -820,6 +820,7 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "dotenv",
+ "futures",
  "hillm",
  "serde_json",
  "tokio",
