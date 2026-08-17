@@ -1,9 +1,11 @@
 use clap::Parser;
+use dotenv::dotenv;
 use futures::StreamExt;
-use hillm::client::Client;
-use hillm::config::OpenRouterConfig;
-use hillm::types::request::Request;
+use hillm::ClientBuilder;
+use hillm::client::ChatCompletionClient;
+use hillm::types::ChatCompletionRequest;
 use serde_json::json;
+use std::env;
 
 #[derive(Parser)]
 #[command(author, version, about)]
@@ -14,10 +16,12 @@ struct Args {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    dotenv().ok();
+    let api_key = env::var("API_KEY").unwrap_or_default();
     let args = Args::parse();
     println!("{}", args.prompt);
 
-    let request: Request = serde_json::from_value(json!({
+    let request: ChatCompletionRequest = serde_json::from_value(json!({
         "messages": [
             {"role": "user", "content": args.prompt}
         ],
@@ -25,7 +29,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }))
     .unwrap();
 
-    let client: Client<OpenRouterConfig> = Client::new();
+    let client = ClientBuilder::new()
+        .api_key(api_key)
+        .provider("openai")
+        .base_url("https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1")
+        .build()?;
     let mut stream = client.chat_stream(request).await?;
 
     while let Some(chunk) = stream.next().await {
@@ -36,7 +44,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
     }
-    println!();
 
     Ok(())
 }
