@@ -2287,10 +2287,12 @@ dependencies = [
 name = "openrode"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "clap",
  "dotenv",
  "futures",
  "hillm",
+ "serde",
  "serde_json",
  "tokio",
 ]
