@@ -57,7 +57,7 @@ async fn main() -> anyhow::Result<()> {
     let boxed_client: Box<dyn ChatCompletionClient> = Box::new(client);
 
     // 创建并运行代理循环
-    let mut loop_agent = agent::AgentLoop::new(boxed_client, args.model);
+    let mut loop_agent = agent::AgentLoop::new(boxed_client, args.model).await;
     loop_agent.run(&prompt).await?;
 
     Ok(())
