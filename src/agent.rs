@@ -7,9 +7,9 @@ use hillm::types::{
 };
 use std::collections::HashMap;
 
-use crate::tool;
+use crate::tool::{self, ToolRegistry};
 
-const SYSTEM_PROMPT: &str = "你是一个编程助手，可用 bash 工具操作当前目录。\
+const SYSTEM_PROMPT: &str = "你是一个编程助手，可用工具操作文件和执行命令。\
     先调查再动手，回答简洁。";
 
 /// 代理循环状态
@@ -17,12 +17,15 @@ pub struct AgentLoop {
     client: Box<dyn ChatCompletionClient>,
     model: String,
     messages: Vec<Message>,
-    tools: Vec<Tool>,
+    tool_defs: Vec<Tool>,
+    registry: ToolRegistry,
 }
 
 impl AgentLoop {
-    pub fn new(client: Box<dyn ChatCompletionClient>, model: String) -> Self {
-        let tools = tool::get_tools();
+    /// 创建代理循环（异步，因为需要初始化工具注册表）
+    pub async fn new(client: Box<dyn ChatCompletionClient>, model: String) -> Self {
+        let registry = tool::create_registry().await;
+        let tool_defs = tool::get_tools(&registry).await;
         let system_msg = Message::System(SystemMessage {
             content: MessageContent::Text(SYSTEM_PROMPT.to_string()),
             name: None,
@@ -31,7 +34,8 @@ impl AgentLoop {
             client,
             model,
             messages: vec![system_msg],
-            tools,
+            tool_defs,
+            registry,
         }
     }
 
@@ -47,7 +51,7 @@ impl AgentLoop {
             let request = ChatCompletionRequest {
                 model: self.model.clone(),
                 messages: self.messages.clone(),
-                tools: Some(self.tools.clone()),
+                tools: Some(self.tool_defs.clone()),
                 stream: Some(true),
                 ..Default::default()
             };
@@ -176,16 +180,15 @@ impl AgentLoop {
                 let Some(name) = &func.name else { continue };
                 let args = func.arguments.clone().unwrap_or_default();
 
-                println!("[Tool] {name}({args})");
-                let result = tool::execute_tool(name, &args).await;
-                let output = truncate_output(&result.output, 50_000);
+                println!("[Tool] {name}");
+                let result = tool::execute_tool(&self.registry, name, &args).await;
 
                 if result.error {
                     println!("[Tool Error] {}", result.output);
                 }
 
                 self.messages.push(Message::Tool(ToolMessage {
-                    content: MessageContent::Text(output),
+                    content: MessageContent::Text(result.output),
                     tool_call_id: id.clone(),
                     name: Some(name.clone()),
                 }));
@@ -193,21 +196,5 @@ impl AgentLoop {
         }
 
         Ok(())
-    }
-}
-
-/// 截断过长的工具输出
-fn truncate_output(s: &str, max_len: usize) -> String {
-    if s.len() <= max_len {
-        s.to_string()
-    } else {
-        let half = max_len / 2;
-        let mut result = s[..half].to_string();
-        result.push_str(&format!(
-            "\n\n... 已截断 {} 字节 ...\n\n",
-            s.len() - max_len
-        ));
-        result.push_str(&s[s.len() - half..]);
-        result
     }
 }
