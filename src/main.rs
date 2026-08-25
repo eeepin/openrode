@@ -5,6 +5,7 @@ use hillm::client::ChatCompletionClient;
 use std::env;
 
 mod agent;
+mod prompt;
 mod session;
 mod storage;
 mod tool;
@@ -51,6 +52,9 @@ async fn main() -> anyhow::Result<()> {
     dotenv().ok();
     let api_key = env::var("API_KEY").unwrap_or_default();
     let args = Args::parse();
+
+    // 获取当前工作目录
+    let cwd = env::current_dir()?;
 
     // 初始化存储
     let storage = storage::file::FileStorage::default_storage().await?;
@@ -99,23 +103,23 @@ async fn main() -> anyhow::Result<()> {
     let mut agent_loop = if let Some(session_id) = args.session {
         // 恢复指定会话
         println!("恢复会话: {session_id}");
-        agent::AgentLoop::resume(boxed_client, &session_id, boxed_storage).await?
+        agent::AgentLoop::resume(boxed_client, &session_id, boxed_storage, cwd.clone()).await?
     } else if args.r#continue {
         // 恢复最近会话
         match boxed_storage.latest_session_id().await? {
             Some(id) => {
                 println!("继续最近会话: {id}");
-                agent::AgentLoop::resume(boxed_client, &id, boxed_storage).await?
+                agent::AgentLoop::resume(boxed_client, &id, boxed_storage, cwd.clone()).await?
             }
             None => {
                 println!("没有历史会话，创建新会话");
-                agent::AgentLoop::new(boxed_client, args.model, boxed_storage).await?
+                agent::AgentLoop::new(boxed_client, args.model, boxed_storage, cwd.clone()).await?
             }
         }
     } else {
         // 新建会话
         println!("模型: {}", args.model);
-        agent::AgentLoop::new(boxed_client, args.model, boxed_storage).await?
+        agent::AgentLoop::new(boxed_client, args.model, boxed_storage, cwd.clone()).await?
     };
 
     println!("会话 ID: {}", agent_loop.session_id());
