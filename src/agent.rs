@@ -6,13 +6,12 @@ use hillm::types::{
     StreamToolCall, Tool, ToolCall, ToolType,
 };
 use std::collections::HashMap;
+use std::path::PathBuf;
 
+use crate::prompt;
 use crate::session::{Message, Session};
 use crate::storage::Storage;
 use crate::tool::{self, ToolRegistry};
-
-const SYSTEM_PROMPT: &str = "你是一个编程助手，可用工具操作文件和执行命令。\
-    先调查再动手，回答简洁。";
 
 /// 代理循环状态
 pub struct AgentLoop {
@@ -29,16 +28,18 @@ impl AgentLoop {
         client: Box<dyn ChatCompletionClient>,
         model: String,
         storage: Box<dyn Storage>,
+        cwd: PathBuf,
     ) -> Result<Self> {
         let registry = tool::create_registry().await;
         let tool_defs = tool::get_tools(&registry).await;
-        let session = Session::new(model);
+        let session = Session::new(model.clone());
 
         // 持久化新会话
         storage.create_session(&session).await?;
 
-        // 添加系统消息
-        let system_msg = Message::system_text(session.id.clone(), SYSTEM_PROMPT.to_string());
+        // 构建系统提示并添加系统消息
+        let system_prompt = prompt::build_system_prompt(&model, &cwd);
+        let system_msg = Message::system_text(session.id.clone(), system_prompt);
         storage.append_message(&session.id, &system_msg).await?;
 
         Ok(Self {
@@ -55,6 +56,7 @@ impl AgentLoop {
         client: Box<dyn ChatCompletionClient>,
         session_id: &str,
         storage: Box<dyn Storage>,
+        _cwd: PathBuf,
     ) -> Result<Self> {
         let registry = tool::create_registry().await;
         let tool_defs = tool::get_tools(&registry).await;
