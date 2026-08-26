@@ -5,6 +5,7 @@ use std::process::Stdio;
 use tokio::process::Command;
 
 use super::{AgentTool, ToolResult};
+use crate::permission::PermissionRequest;
 
 pub struct BashTool;
 
@@ -36,6 +37,11 @@ impl AgentTool for BashTool {
             },
             "required": ["command"]
         })
+    }
+
+    fn permission_request(&self, input: &Value) -> PermissionRequest {
+        let command = input.get("command").and_then(|v| v.as_str()).unwrap_or("");
+        PermissionRequest::new("bash", command)
     }
 
     async fn run(&self, input: Value) -> ToolResult {
