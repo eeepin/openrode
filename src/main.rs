@@ -5,6 +5,7 @@ use hillm::client::ChatCompletionClient;
 use std::env;
 
 mod agent;
+mod permission;
 mod prompt;
 mod session;
 mod storage;

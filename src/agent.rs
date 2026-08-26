@@ -8,6 +8,7 @@ use hillm::types::{
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+use crate::permission::PermissionManager;
 use crate::prompt;
 use crate::session::{Message, Session};
 use crate::storage::Storage;
@@ -20,6 +21,7 @@ pub struct AgentLoop {
     storage: Box<dyn Storage>,
     tool_defs: Vec<Tool>,
     registry: ToolRegistry,
+    permissions: PermissionManager,
 }
 
 impl AgentLoop {
@@ -33,6 +35,10 @@ impl AgentLoop {
         let registry = tool::create_registry().await;
         let tool_defs = tool::get_tools(&registry).await;
         let session = Session::new(model.clone());
+
+        // 初始化权限管理器
+        let mut permissions = PermissionManager::new();
+        permissions.load_project_config(&cwd).await?;
 
         // 持久化新会话
         storage.create_session(&session).await?;
@@ -48,6 +54,7 @@ impl AgentLoop {
             storage,
             tool_defs,
             registry,
+            permissions,
         })
     }
 
@@ -56,10 +63,14 @@ impl AgentLoop {
         client: Box<dyn ChatCompletionClient>,
         session_id: &str,
         storage: Box<dyn Storage>,
-        _cwd: PathBuf,
+        cwd: PathBuf,
     ) -> Result<Self> {
         let registry = tool::create_registry().await;
         let tool_defs = tool::get_tools(&registry).await;
+
+        // 初始化权限管理器
+        let mut permissions = PermissionManager::new();
+        permissions.load_project_config(&cwd).await?;
 
         let session_data = storage
             .get_session(session_id)
@@ -72,6 +83,7 @@ impl AgentLoop {
             storage,
             tool_defs,
             registry,
+            permissions,
         })
     }
 
@@ -225,7 +237,8 @@ impl AgentLoop {
                 let args = func.arguments.clone().unwrap_or_default();
 
                 println!("[Tool] {name}");
-                let result = tool::execute_tool(&self.registry, name, &args).await;
+                let result =
+                    tool::execute_tool(&self.registry, &self.permissions, name, &args).await;
 
                 if result.error {
                     println!("[Tool Error] {}", result.output);
