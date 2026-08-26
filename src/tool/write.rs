@@ -3,6 +3,7 @@ use serde::Deserialize;
 use serde_json::Value;
 
 use super::{AgentTool, ToolResult};
+use crate::permission::PermissionRequest;
 
 pub struct WriteTool;
 
@@ -39,6 +40,11 @@ impl AgentTool for WriteTool {
             },
             "required": ["path", "content"]
         })
+    }
+
+    fn permission_request(&self, input: &Value) -> PermissionRequest {
+        let path = input.get("path").and_then(|v| v.as_str()).unwrap_or("");
+        PermissionRequest::new("write", path).with_detail("path", path)
     }
 
     async fn run(&self, input: Value) -> ToolResult {

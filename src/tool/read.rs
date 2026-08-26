@@ -3,6 +3,7 @@ use serde::Deserialize;
 use serde_json::Value;
 
 use super::{AgentTool, ToolResult};
+use crate::permission::PermissionRequest;
 
 pub struct ReadTool;
 
@@ -46,6 +47,11 @@ impl AgentTool for ReadTool {
             },
             "required": ["path"]
         })
+    }
+
+    fn permission_request(&self, input: &Value) -> PermissionRequest {
+        let path = input.get("path").and_then(|v| v.as_str()).unwrap_or("");
+        PermissionRequest::new("read", path)
     }
 
     async fn run(&self, input: Value) -> ToolResult {

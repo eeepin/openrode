@@ -5,6 +5,8 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
+use crate::permission::{PermissionDecision, PermissionManager, PermissionRequest};
+
 pub mod bash;
 pub mod read;
 pub mod write;
@@ -47,6 +49,15 @@ pub trait AgentTool: Send + Sync {
     /// 执行工具
     async fn run(&self, input: Value) -> ToolResult;
 
+    /// 生成权限请求（用于权限检查）
+    fn permission_request(&self, input: &Value) -> PermissionRequest {
+        // 默认实现：使用工具名和输入的简单表示
+        PermissionRequest::new(
+            self.name(),
+            serde_json::to_string(input).unwrap_or_default(),
+        )
+    }
+
     /// 转换为 LLM API 所需的 Tool 定义
     fn to_tool(&self) -> Tool {
         Tool {
@@ -79,8 +90,13 @@ pub async fn create_registry() -> ToolRegistry {
     registry
 }
 
-/// 执行工具调用
-pub async fn execute_tool(registry: &ToolRegistry, name: &str, arguments: &str) -> ToolResult {
+/// 执行工具调用（带权限检查）
+pub async fn execute_tool(
+    registry: &ToolRegistry,
+    permissions: &PermissionManager,
+    name: &str,
+    arguments: &str,
+) -> ToolResult {
     let reg = registry.read().await;
 
     let Some(tool) = reg.get(name) else {
@@ -98,6 +114,22 @@ pub async fn execute_tool(registry: &ToolRegistry, name: &str, arguments: &str) 
             return ToolResult::error(format!("参数解析失败: {e}\n请检查 JSON 格式"));
         }
     };
+
+    // 生成权限请求
+    let request = tool.permission_request(&input);
+
+    // 检查权限
+    match permissions.check(&request).await {
+        Ok(PermissionDecision::Allowed) | Ok(PermissionDecision::Asked) => {
+            // 允许执行
+        }
+        Ok(PermissionDecision::Denied(reason)) => {
+            return ToolResult::error(format!("权限被拒绝: {reason}"));
+        }
+        Err(e) => {
+            return ToolResult::error(format!("权限检查失败: {e}"));
+        }
+    }
 
     // 执行工具并截断输出
     let result = tool.run(input).await;
