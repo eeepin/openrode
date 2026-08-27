@@ -8,6 +8,7 @@ mod agent;
 mod permission;
 mod prompt;
 mod session;
+mod snapshot;
 mod storage;
 mod tool;
 
