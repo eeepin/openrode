@@ -221,3 +221,33 @@ pub struct SessionData {
     pub session: Session,
     pub messages: Vec<Message>,
 }
+
+/// 从现有会话分叉出新会话
+///
+/// 复制源会话从开始到指定消息（包含）的所有消息到新会话。
+#[allow(dead_code)]
+pub fn fork_session_data(source: &SessionData, until_message_id: &str) -> Option<SessionData> {
+    let cut_index = source
+        .messages
+        .iter()
+        .position(|m| m.id == until_message_id)?;
+
+    let new_session = Session::new(source.session.model.clone());
+
+    // 复制消息，但重新生成 ID
+    let new_messages: Vec<Message> = source.messages[..=cut_index]
+        .iter()
+        .map(|msg| Message {
+            id: Ulid::new().to_string(),
+            session_id: new_session.id.clone(),
+            role: msg.role.clone(),
+            parts: msg.parts.clone(),
+            created_at: msg.created_at,
+        })
+        .collect();
+
+    Some(SessionData {
+        session: new_session,
+        messages: new_messages,
+    })
+}
