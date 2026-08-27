@@ -10,9 +10,16 @@ use std::path::PathBuf;
 
 use crate::permission::PermissionManager;
 use crate::prompt;
-use crate::session::{Message, Session};
+use crate::session::{Message, Part, Role, Session};
+use crate::snapshot::Snapshot;
 use crate::storage::Storage;
 use crate::tool::{self, ToolRegistry};
+
+/// Doom loop 检测阈值：相同工具调用连续出现次数
+const DOOM_LOOP_THRESHOLD: usize = 3;
+
+/// 默认最大步数
+const DEFAULT_MAX_STEPS: usize = 100;
 
 /// 代理循环状态
 pub struct AgentLoop {
@@ -22,6 +29,11 @@ pub struct AgentLoop {
     tool_defs: Vec<Tool>,
     registry: ToolRegistry,
     permissions: PermissionManager,
+    #[allow(dead_code)]
+    cwd: PathBuf,
+    snapshot: Option<Snapshot>,
+    step_count: usize,
+    max_steps: usize,
 }
 
 impl AgentLoop {
@@ -40,6 +52,9 @@ impl AgentLoop {
         let mut permissions = PermissionManager::new();
         permissions.load_project_config(&cwd).await?;
 
+        // 初始化快照管理器
+        let snapshot = Snapshot::new(&session.id, &cwd).ok();
+
         // 持久化新会话
         storage.create_session(&session).await?;
 
@@ -55,6 +70,10 @@ impl AgentLoop {
             tool_defs,
             registry,
             permissions,
+            cwd,
+            snapshot,
+            step_count: 0,
+            max_steps: DEFAULT_MAX_STEPS,
         })
     }
 
@@ -77,6 +96,9 @@ impl AgentLoop {
             .await?
             .ok_or_else(|| anyhow::anyhow!("会话不存在: {session_id}"))?;
 
+        // 初始化快照管理器
+        let snapshot = Snapshot::new(session_id, &cwd).ok();
+
         Ok(Self {
             client,
             session: session_data.session,
@@ -84,6 +106,10 @@ impl AgentLoop {
             tool_defs,
             registry,
             permissions,
+            cwd,
+            snapshot,
+            step_count: 0,
+            max_steps: DEFAULT_MAX_STEPS,
         })
     }
 
@@ -112,6 +138,37 @@ impl AgentLoop {
             .await?;
 
         loop {
+            self.step_count += 1;
+
+            // 检查步数上限
+            if self.step_count > self.max_steps {
+                let limit_msg = Message::new(
+                    self.session.id.clone(),
+                    Role::System,
+                    vec![Part::Text {
+                        content: format!(
+                            "已达到步数上限（{}步），请总结当前进度并结束任务。",
+                            self.max_steps
+                        ),
+                    }],
+                );
+                self.storage
+                    .append_message(&self.session.id, &limit_msg)
+                    .await?;
+            }
+
+            // Doom loop 检测
+            if let Some(warning) = self.detect_doom_loop().await? {
+                let warning_msg = Message::new(
+                    self.session.id.clone(),
+                    Role::System,
+                    vec![Part::Text { content: warning }],
+                );
+                self.storage
+                    .append_message(&self.session.id, &warning_msg)
+                    .await?;
+            }
+
             // 从存储加载所有消息
             let messages = self.load_messages().await?;
 
@@ -236,6 +293,11 @@ impl AgentLoop {
                 let Some(name) = &func.name else { continue };
                 let args = func.arguments.clone().unwrap_or_default();
 
+                // 工具执行前打快照
+                if let Some(snapshot) = &self.snapshot {
+                    let _ = snapshot.before_tool_execution(&format!("{} {}", name, args));
+                }
+
                 println!("[Tool] {name}");
                 let result =
                     tool::execute_tool(&self.registry, &self.permissions, name, &args).await;
@@ -258,5 +320,68 @@ impl AgentLoop {
         }
 
         Ok(())
+    }
+
+    /// 检测 doom loop（重复工具调用）
+    async fn detect_doom_loop(&self) -> Result<Option<String>> {
+        let session_data = self
+            .storage
+            .get_session(&self.session.id)
+            .await?
+            .ok_or_else(|| anyhow::anyhow!("会话不存在"))?;
+
+        let messages = &session_data.messages;
+
+        // 取最近的消息进行分析
+        let recent: Vec<_> = messages
+            .iter()
+            .rev()
+            .take(DOOM_LOOP_THRESHOLD * 4)
+            .collect();
+
+        // 提取最近的工具调用
+        let tool_calls: Vec<(&str, &str)> = recent
+            .iter()
+            .filter(|m| m.role == Role::Assistant)
+            .flat_map(|m| {
+                m.parts.iter().filter_map(|p| match p {
+                    Part::ToolUse {
+                        name, arguments, ..
+                    } => Some((name.as_str(), arguments.as_str())),
+                    _ => None,
+                })
+            })
+            .collect();
+
+        // 检查是否有连续的相同调用
+        if tool_calls.len() >= DOOM_LOOP_THRESHOLD {
+            let last_n: Vec<_> = tool_calls.iter().take(DOOM_LOOP_THRESHOLD).collect();
+            let first = last_n[0];
+            let all_same = last_n
+                .iter()
+                .all(|(name, args)| *name == first.0 && *args == first.1);
+
+            if all_same {
+                return Ok(Some(format!(
+                    "检测到重复工具调用：{} 连续执行了 {} 次相同参数的 {}。\
+                    \n请尝试不同的方法，或说明卡住的原因。",
+                    first.0, DOOM_LOOP_THRESHOLD, first.0
+                )));
+            }
+        }
+
+        Ok(None)
+    }
+
+    /// 获取当前步数
+    #[allow(dead_code)]
+    pub fn step_count(&self) -> usize {
+        self.step_count
+    }
+
+    /// 设置最大步数
+    #[allow(dead_code)]
+    pub fn set_max_steps(&mut self, max_steps: usize) {
+        self.max_steps = max_steps;
     }
 }
