@@ -23,6 +23,7 @@ ulid = { version = "1", features = ["serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 dirs = "6"
 tempfile = "3"
+git2 = "0.19"
 hillm = { path = "crates/hillm" }
 
 [workspace]
