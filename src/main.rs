@@ -7,6 +7,7 @@ use std::env;
 mod agent;
 mod permission;
 mod prompt;
+mod provider;
 mod session;
 mod snapshot;
 mod storage;
@@ -25,16 +26,18 @@ struct Args {
     #[arg(short, long, default_value = "qwen3.7-plus")]
     model: String,
 
-    /// LLM 提供商
-    #[arg(long, default_value = "openai")]
-    provider: String,
+    /// LLM 提供商 (openai, anthropic, google, ollama, openrouter, custom)
+    /// 如果不指定，会从模型名自动推断
+    #[arg(long)]
+    provider: Option<String>,
 
-    /// API base URL
-    #[arg(
-        long,
-        default_value = "https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"
-    )]
-    base_url: String,
+    /// API base URL（覆盖默认值）
+    #[arg(long)]
+    base_url: Option<String>,
+
+    /// API key（覆盖环境变量）
+    #[arg(long, env = "API_KEY")]
+    api_key: Option<String>,
 
     /// 继续最近的会话
     #[arg(short = 'c', long)]
@@ -47,13 +50,36 @@ struct Args {
     /// 列出所有会话
     #[arg(short = 'l', long)]
     list: bool,
+
+    /// 列出可用模型
+    #[arg(long)]
+    list_models: bool,
 }
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
-    let api_key = env::var("API_KEY").unwrap_or_default();
     let args = Args::parse();
+
+    // 列出模型
+    if args.list_models {
+        let catalog = provider::models::ModelCatalog::new();
+        println!(
+            "{:<35} {:<12} {:<12} {:<8} {:<8}",
+            "模型", "Provider", "上下文", "工具", "视觉"
+        );
+        println!("{}", "-".repeat(80));
+        for model in catalog.list() {
+            let context = format!("{}K", model.context_window / 1000);
+            let tools = if model.supports_tools { "✓" } else { "✗" };
+            let vision = if model.supports_vision { "✓" } else { "✗" };
+            println!(
+                "{:<35} {:<12} {:<12} {:<8} {:<8}",
+                model.id, model.provider, context, tools, vision
+            );
+        }
+        return Ok(());
+    }
 
     // 获取当前工作目录
     let cwd = env::current_dir()?;
@@ -91,15 +117,45 @@ async fn main() -> anyhow::Result<()> {
         }
     };
 
+    // 确定 provider（优先使用命令行参数，否则从模型名推断）
+    let provider = args
+        .provider
+        .unwrap_or_else(|| provider::infer_provider_from_model(&args.model).to_string());
+
+    // 确定 base URL
+    let base_url = args
+        .base_url
+        .unwrap_or_else(|| provider::default_base_url(&provider).to_string());
+
+    // 确定 API key
+    let api_key = args.api_key.unwrap_or_else(|| {
+        let env_var = provider::default_env_var(&provider);
+        if env_var.is_empty() {
+            String::new()
+        } else {
+            env::var(env_var).unwrap_or_default()
+        }
+    });
+
+    // 对于 Ollama，不需要 API key
+    let api_key = if provider == "ollama" && api_key.is_empty() {
+        "ollama".to_string()
+    } else {
+        api_key
+    };
+
     // 构建 LLM 客户端
     let client = ClientBuilder::new()
         .api_key(api_key)
-        .provider(&args.provider)
-        .base_url(&args.base_url)
+        .provider(&provider)
+        .base_url(&base_url)
         .build()?;
 
     let boxed_client: Box<dyn ChatCompletionClient> = Box::new(client);
     let boxed_storage: Box<dyn Storage> = Box::new(storage);
+    let model = args.model;
+
+    println!("模型: {} (provider: {})", model, provider);
 
     // 决定是新建还是恢复会话
     let mut agent_loop = if let Some(session_id) = args.session {
@@ -115,13 +171,12 @@ async fn main() -> anyhow::Result<()> {
             }
             None => {
                 println!("没有历史会话，创建新会话");
-                agent::AgentLoop::new(boxed_client, args.model, boxed_storage, cwd.clone()).await?
+                agent::AgentLoop::new(boxed_client, model, boxed_storage, cwd.clone()).await?
             }
         }
     } else {
         // 新建会话
-        println!("模型: {}", args.model);
-        agent::AgentLoop::new(boxed_client, args.model, boxed_storage, cwd.clone()).await?
+        agent::AgentLoop::new(boxed_client, model, boxed_storage, cwd.clone()).await?
     };
 
     println!("会话 ID: {}", agent_loop.session_id());
