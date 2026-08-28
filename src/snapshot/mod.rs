@@ -215,11 +215,16 @@ mod tests {
         // 创建一个测试文件
         std::fs::write(workdir.join("test.txt"), "hello").unwrap();
 
-        let snapshot = Snapshot::new("test-session", workdir).unwrap();
+        // 使用唯一的 session ID 避免与其他测试冲突
+        let session_id = format!("test-session-{}", ulid::Ulid::new());
+        let snapshot = Snapshot::new(&session_id, workdir).unwrap();
         snapshot.before_tool_execution("test-step").unwrap();
 
         let snapshots = snapshot.list_snapshots().unwrap();
         assert_eq!(snapshots.len(), 1);
         assert!(snapshots[0].message.contains("test-step"));
+
+        // 清理测试目录
+        let _ = std::fs::remove_dir_all(&snapshot.repo_path);
     }
 }
