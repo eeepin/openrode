@@ -26,6 +26,14 @@ tempfile = "3"
 git2 = "0.19"
 hillm = { path = "crates/hillm" }
 
+# L7: Server dependencies (using hyper directly to avoid axum dependency issues)
+hyper = { version = "1.0", features = ["http1", "http2", "server"] }
+hyper-util = { version = "0.1", features = ["tokio", "http1", "http2"] }
+http-body = "1.0"
+http-body-util = "0.1"
+bytes = "1.0"
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+
 [workspace]
 resolver = "3"
 members = ["crates/hillm"]

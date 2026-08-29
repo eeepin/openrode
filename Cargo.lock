@@ -2344,6 +2344,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
+ "bytes",
  "chrono",
  "clap",
  "dirs",
@@ -2351,10 +2352,15 @@ dependencies = [
  "futures",
  "git2",
  "hillm",
+ "http-body 1.1.0",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
  "serde",
  "serde_json",
  "tempfile",
  "tokio",
+ "tower-http 0.6.11",
  "ulid",
 ]
 
@@ -3955,6 +3961,7 @@ dependencies = [
  "tower",
  "tower-layer",
  "tower-service",
+ "tracing",
  "url",
 ]
 
