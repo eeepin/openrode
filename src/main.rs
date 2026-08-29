@@ -8,6 +8,7 @@ mod agent;
 mod permission;
 mod prompt;
 mod provider;
+mod server;
 mod session;
 mod snapshot;
 mod storage;
@@ -54,6 +55,14 @@ struct Args {
     /// 列出可用模型
     #[arg(long)]
     list_models: bool,
+
+    /// 启动 HTTP 服务器
+    #[arg(long)]
+    serve: bool,
+
+    /// 服务器监听地址
+    #[arg(long, default_value = "127.0.0.1:3000")]
+    addr: String,
 }
 
 #[tokio::main]
@@ -86,6 +95,12 @@ async fn main() -> anyhow::Result<()> {
 
     // 初始化存储
     let storage = storage::file::FileStorage::default_storage().await?;
+
+    // 启动服务器
+    if args.serve {
+        let storage: std::sync::Arc<dyn Storage> = std::sync::Arc::new(storage);
+        return server::start_server(storage, &args.addr).await;
+    }
 
     // 列出会话
     if args.list {
