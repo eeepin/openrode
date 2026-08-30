@@ -34,6 +34,11 @@ http-body-util = "0.1"
 bytes = "1.0"
 tower-http = { version = "0.6", features = ["cors", "trace"] }
 
+# L8: TUI dependencies
+ratatui = "0.29"
+crossterm = "0.28"
+reqwest = { version = "0.12", features = ["stream", "json"] }
+
 [workspace]
 resolver = "3"
 members = ["crates/hillm"]
