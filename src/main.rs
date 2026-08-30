@@ -13,6 +13,7 @@ mod session;
 mod snapshot;
 mod storage;
 mod tool;
+mod tui;
 
 use storage::Storage;
 
@@ -63,6 +64,14 @@ struct Args {
     /// 服务器监听地址
     #[arg(long, default_value = "127.0.0.1:3000")]
     addr: String,
+
+    /// 启动 TUI 界面
+    #[arg(long)]
+    tui: bool,
+
+    /// TUI 连接的服务器地址
+    #[arg(long, default_value = "http://127.0.0.1:3000")]
+    server_url: String,
 }
 
 #[tokio::main]
@@ -100,6 +109,12 @@ async fn main() -> anyhow::Result<()> {
     if args.serve {
         let storage: std::sync::Arc<dyn Storage> = std::sync::Arc::new(storage);
         return server::start_server(storage, &args.addr).await;
+    }
+
+    // 启动 TUI
+    if args.tui {
+        let tui_client = tui::TuiClient::new(&args.server_url);
+        return tui_client.run().await;
     }
 
     // 列出会话
