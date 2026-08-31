@@ -10,6 +10,7 @@ mod prompt;
 mod provider;
 mod server;
 mod session;
+mod skill;
 mod snapshot;
 mod storage;
 mod tool;
@@ -102,6 +103,16 @@ async fn main() -> anyhow::Result<()> {
     // 获取当前工作目录
     let cwd = env::current_dir()?;
 
+    // 初始化技能注册表
+    let skill_dirs = vec![
+        cwd.join(".openrode").join("skills"),
+        dirs::home_dir()
+            .unwrap_or_default()
+            .join(".openrode")
+            .join("skills"),
+    ];
+    let skill_registry = skill::create_registry(&skill_dirs).await.ok();
+
     // 初始化存储
     let storage = storage::file::FileStorage::default_storage().await?;
 
@@ -191,22 +202,22 @@ async fn main() -> anyhow::Result<()> {
     let mut agent_loop = if let Some(session_id) = args.session {
         // 恢复指定会话
         println!("恢复会话: {session_id}");
-        agent::AgentLoop::resume(boxed_client, &session_id, boxed_storage, cwd.clone()).await?
+        agent::AgentLoop::resume(boxed_client, &session_id, boxed_storage, cwd.clone(), skill_registry).await?
     } else if args.r#continue {
         // 恢复最近会话
         match boxed_storage.latest_session_id().await? {
             Some(id) => {
                 println!("继续最近会话: {id}");
-                agent::AgentLoop::resume(boxed_client, &id, boxed_storage, cwd.clone()).await?
+                agent::AgentLoop::resume(boxed_client, &id, boxed_storage, cwd.clone(), skill_registry).await?
             }
             None => {
                 println!("没有历史会话，创建新会话");
-                agent::AgentLoop::new(boxed_client, model, boxed_storage, cwd.clone()).await?
+                agent::AgentLoop::new(boxed_client, model, boxed_storage, cwd.clone(), skill_registry).await?
             }
         }
     } else {
         // 新建会话
-        agent::AgentLoop::new(boxed_client, model, boxed_storage, cwd.clone()).await?
+        agent::AgentLoop::new(boxed_client, model, boxed_storage, cwd.clone(), skill_registry).await?
     };
 
     println!("会话 ID: {}", agent_loop.session_id());

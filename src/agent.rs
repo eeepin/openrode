@@ -11,6 +11,7 @@ use std::path::PathBuf;
 use crate::permission::PermissionManager;
 use crate::prompt;
 use crate::session::{Message, Part, Role, Session};
+use crate::skill::SkillRegistry;
 use crate::snapshot::Snapshot;
 use crate::storage::Storage;
 use crate::tool::{self, ToolRegistry};
@@ -43,8 +44,16 @@ impl AgentLoop {
         model: String,
         storage: Box<dyn Storage>,
         cwd: PathBuf,
+        skill_registry: Option<SkillRegistry>,
     ) -> Result<Self> {
-        let registry = tool::create_registry().await;
+        // 获取技能列表（在传递给 tool registry 之前）
+        let skill_list = if let Some(ref registry) = skill_registry {
+            Some(crate::skill::skill_list(registry).await)
+        } else {
+            None
+        };
+
+        let registry = tool::create_registry(skill_registry).await;
         let tool_defs = tool::get_tools(&registry).await;
         let session = Session::new(model.clone());
 
@@ -59,7 +68,7 @@ impl AgentLoop {
         storage.create_session(&session).await?;
 
         // 构建系统提示并添加系统消息
-        let system_prompt = prompt::build_system_prompt(&model, &cwd);
+        let system_prompt = prompt::build_system_prompt(&model, &cwd, skill_list.as_deref());
         let system_msg = Message::system_text(session.id.clone(), system_prompt);
         storage.append_message(&session.id, &system_msg).await?;
 
@@ -83,8 +92,9 @@ impl AgentLoop {
         session_id: &str,
         storage: Box<dyn Storage>,
         cwd: PathBuf,
+        skill_registry: Option<SkillRegistry>,
     ) -> Result<Self> {
-        let registry = tool::create_registry().await;
+        let registry = tool::create_registry(skill_registry).await;
         let tool_defs = tool::get_tools(&registry).await;
 
         // 初始化权限管理器
