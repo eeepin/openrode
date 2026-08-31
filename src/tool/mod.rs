@@ -6,6 +6,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 
 use crate::permission::{PermissionDecision, PermissionManager, PermissionRequest};
+use crate::skill::{SkillRegistry, SkillTool};
 
 pub mod bash;
 pub mod read;
@@ -76,7 +77,7 @@ pub trait AgentTool: Send + Sync {
 pub type ToolRegistry = Arc<RwLock<HashMap<String, Box<dyn AgentTool>>>>;
 
 /// 创建并初始化工具注册表
-pub async fn create_registry() -> ToolRegistry {
+pub async fn create_registry(skill_registry: Option<SkillRegistry>) -> ToolRegistry {
     let registry: ToolRegistry = Arc::new(RwLock::new(HashMap::new()));
 
     // 注册所有工具
@@ -85,6 +86,11 @@ pub async fn create_registry() -> ToolRegistry {
         reg.insert("bash".to_string(), Box::new(bash::BashTool));
         reg.insert("read".to_string(), Box::new(read::ReadTool));
         reg.insert("write".to_string(), Box::new(write::WriteTool));
+
+        // 注册技能工具（如果有技能注册表）
+        if let Some(skill_reg) = skill_registry {
+            reg.insert("skill".to_string(), Box::new(SkillTool::new(skill_reg)));
+        }
     }
 
     registry
