@@ -110,7 +110,7 @@ Git 仓库: {}",
 }
 
 /// 构建完整的系统提示
-pub fn build_system_prompt(model: &str, cwd: &Path) -> String {
+pub fn build_system_prompt(model: &str, cwd: &Path, skill_list: Option<&str>) -> String {
     let family = detect_model_family(model);
     let personality = get_personality_template(family);
     let env_info = build_env_info(cwd, model);
@@ -139,13 +139,22 @@ pub fn build_system_prompt(model: &str, cwd: &Path) -> String {
         prompt.push_str("\n\n");
     }
 
-    // 4. 工具使用说明
+    // 4. 技能列表
+    if let Some(skills) = skill_list {
+        if !skills.is_empty() {
+            prompt.push_str(skills);
+            prompt.push_str("\n\n");
+        }
+    }
+
+    // 5. 工具使用说明
     prompt.push_str(
         "<tools>\n\
         你可以使用以下工具来完成任务：\n\
         - bash: 执行 shell 命令\n\
         - read: 读取文件内容（带行号）\n\
         - write: 写入文件（覆盖）\n\
+        - skill: 读取技能内容（使用 /技能名 调用技能）\n\
         \n\
         使用工具时，先思考再行动。对于破坏性操作（如删除文件、覆盖重要内容），请格外谨慎。\n\
         </tools>",
