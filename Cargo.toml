@@ -39,6 +39,9 @@ ratatui = "0.29"
 crossterm = "0.28"
 reqwest = { version = "0.12", features = ["stream", "json"] }
 
+# L9: Skill dependencies
+serde_yaml = "0.9"
+
 [workspace]
 resolver = "3"
 members = ["crates/hillm"]
