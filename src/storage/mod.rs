@@ -33,4 +33,9 @@ pub trait Storage: Send + Sync {
 
     /// 获取最近的会话 ID（用于 --continue）
     async fn latest_session_id(&self) -> Result<Option<String>>;
+
+    /// 获取会话使用的模型
+    async fn get_model(&self) -> Result<Option<String>> {
+        Ok(None)
+    }
 }

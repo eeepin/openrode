@@ -139,4 +139,14 @@ impl Storage for FileStorage {
         let sessions = self.list_sessions().await?;
         Ok(sessions.first().map(|s| s.id.clone()))
     }
+
+    async fn get_model(&self) -> Result<Option<String>> {
+        // 从最近的会话中获取模型
+        let sessions = self.list_sessions().await?;
+        if let Some(session) = sessions.first() {
+            Ok(Some(session.model.clone()))
+        } else {
+            Ok(None)
+        }
+    }
 }
