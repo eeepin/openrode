@@ -7,6 +7,7 @@ use hillm::types::{
 };
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use crate::permission::PermissionManager;
 use crate::prompt;
@@ -24,9 +25,9 @@ const DEFAULT_MAX_STEPS: usize = 100;
 
 /// 代理循环状态
 pub struct AgentLoop {
-    client: Box<dyn ChatCompletionClient>,
+    client: Arc<dyn ChatCompletionClient>,
     session: Session,
-    storage: Box<dyn Storage>,
+    storage: Arc<dyn Storage>,
     tool_defs: Vec<Tool>,
     registry: ToolRegistry,
     permissions: PermissionManager,
@@ -53,7 +54,15 @@ impl AgentLoop {
             None
         };
 
-        let registry = tool::create_registry(skill_registry).await;
+        // 将 storage 和 client 转换为 Arc 以便在工具中使用
+        let storage_arc: Arc<dyn Storage> = Arc::from(storage);
+        let client_arc: Arc<dyn ChatCompletionClient> = Arc::from(client);
+
+        let registry = tool::create_registry(
+            skill_registry,
+            Some(storage_arc.clone()),
+            Some(client_arc.clone()),
+        ).await;
         let tool_defs = tool::get_tools(&registry).await;
         let session = Session::new(model.clone());
 
@@ -65,17 +74,17 @@ impl AgentLoop {
         let snapshot = Snapshot::new(&session.id, &cwd).ok();
 
         // 持久化新会话
-        storage.create_session(&session).await?;
+        storage_arc.create_session(&session).await?;
 
         // 构建系统提示并添加系统消息
         let system_prompt = prompt::build_system_prompt(&model, &cwd, skill_list.as_deref());
         let system_msg = Message::system_text(session.id.clone(), system_prompt);
-        storage.append_message(&session.id, &system_msg).await?;
+        storage_arc.append_message(&session.id, &system_msg).await?;
 
         Ok(Self {
-            client,
+            client: client_arc,
             session,
-            storage,
+            storage: storage_arc,
             tool_defs,
             registry,
             permissions,
@@ -94,14 +103,22 @@ impl AgentLoop {
         cwd: PathBuf,
         skill_registry: Option<SkillRegistry>,
     ) -> Result<Self> {
-        let registry = tool::create_registry(skill_registry).await;
+        // 将 storage 和 client 转换为 Arc 以便在工具中使用
+        let storage_arc: Arc<dyn Storage> = Arc::from(storage);
+        let client_arc: Arc<dyn ChatCompletionClient> = Arc::from(client);
+
+        let registry = tool::create_registry(
+            skill_registry,
+            Some(storage_arc.clone()),
+            Some(client_arc.clone()),
+        ).await;
         let tool_defs = tool::get_tools(&registry).await;
 
         // 初始化权限管理器
         let mut permissions = PermissionManager::new();
         permissions.load_project_config(&cwd).await?;
 
-        let session_data = storage
+        let session_data = storage_arc
             .get_session(session_id)
             .await?
             .ok_or_else(|| anyhow::anyhow!("会话不存在: {session_id}"))?;
@@ -110,9 +127,9 @@ impl AgentLoop {
         let snapshot = Snapshot::new(session_id, &cwd).ok();
 
         Ok(Self {
-            client,
+            client: client_arc,
             session: session_data.session,
-            storage,
+            storage: storage_arc,
             tool_defs,
             registry,
             permissions,
