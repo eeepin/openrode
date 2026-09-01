@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use hillm::client::ChatCompletionClient;
 use hillm::types::{FunctionDefinition, Tool, ToolType};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -7,9 +8,11 @@ use tokio::sync::RwLock;
 
 use crate::permission::{PermissionDecision, PermissionManager, PermissionRequest};
 use crate::skill::{SkillRegistry, SkillTool};
+use crate::storage::Storage;
 
 pub mod bash;
 pub mod read;
+pub mod task;
 pub mod write;
 
 /// 工具执行结果
@@ -77,7 +80,11 @@ pub trait AgentTool: Send + Sync {
 pub type ToolRegistry = Arc<RwLock<HashMap<String, Box<dyn AgentTool>>>>;
 
 /// 创建并初始化工具注册表
-pub async fn create_registry(skill_registry: Option<SkillRegistry>) -> ToolRegistry {
+pub async fn create_registry(
+    skill_registry: Option<SkillRegistry>,
+    storage: Option<Arc<dyn Storage>>,
+    client: Option<Arc<dyn ChatCompletionClient>>,
+) -> ToolRegistry {
     let registry: ToolRegistry = Arc::new(RwLock::new(HashMap::new()));
 
     // 注册所有工具
@@ -90,6 +97,14 @@ pub async fn create_registry(skill_registry: Option<SkillRegistry>) -> ToolRegis
         // 注册技能工具（如果有技能注册表）
         if let Some(skill_reg) = skill_registry {
             reg.insert("skill".to_string(), Box::new(SkillTool::new(skill_reg)));
+        }
+
+        // 注册子代理工具（如果有 storage 和 client）
+        if let (Some(storage), Some(client)) = (storage, client) {
+            reg.insert(
+                "task".to_string(),
+                Box::new(task::TaskTool::new(storage, client)),
+            );
         }
     }
 
