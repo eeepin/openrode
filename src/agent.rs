@@ -10,6 +10,8 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use crate::permission::PermissionManager;
+use crate::plugin::PluginRegistry;
+use crate::mcp::McpRegistry;
 use crate::prompt;
 use crate::session::{Message, Part, Role, Session};
 use crate::skill::SkillRegistry;
@@ -46,6 +48,8 @@ impl AgentLoop {
         storage: Box<dyn Storage>,
         cwd: PathBuf,
         skill_registry: Option<SkillRegistry>,
+        plugin_registry: Option<PluginRegistry>,
+        mcp_registry: Option<McpRegistry>,
     ) -> Result<Self> {
         // 获取技能列表（在传递给 tool registry 之前）
         let skill_list = if let Some(ref registry) = skill_registry {
@@ -62,6 +66,8 @@ impl AgentLoop {
             skill_registry,
             Some(storage_arc.clone()),
             Some(client_arc.clone()),
+            plugin_registry,
+            mcp_registry,
         ).await;
         let tool_defs = tool::get_tools(&registry).await;
         let session = Session::new(model.clone());
@@ -102,6 +108,8 @@ impl AgentLoop {
         storage: Box<dyn Storage>,
         cwd: PathBuf,
         skill_registry: Option<SkillRegistry>,
+        plugin_registry: Option<PluginRegistry>,
+        mcp_registry: Option<McpRegistry>,
     ) -> Result<Self> {
         // 将 storage 和 client 转换为 Arc 以便在工具中使用
         let storage_arc: Arc<dyn Storage> = Arc::from(storage);
@@ -111,6 +119,8 @@ impl AgentLoop {
             skill_registry,
             Some(storage_arc.clone()),
             Some(client_arc.clone()),
+            plugin_registry,
+            mcp_registry,
         ).await;
         let tool_defs = tool::get_tools(&registry).await;
 

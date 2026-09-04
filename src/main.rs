@@ -20,6 +20,59 @@ mod tui;
 
 use storage::Storage;
 
+/// 加载 MCP 配置
+async fn load_mcp_config(
+    config_paths: &[std::path::PathBuf],
+) -> anyhow::Result<Option<mcp::McpRegistry>> {
+    for config_path in config_paths {
+        if config_path.exists() {
+            let content = tokio::fs::read_to_string(config_path).await?;
+            let config: serde_json::Value = serde_json::from_str(&content)?;
+
+            if let Some(servers) = config.get("mcpServers").and_then(|v| v.as_object()) {
+                let mut server_configs = Vec::new();
+
+                for (name, server_config) in servers {
+                    if let (Some(command), Some(args)) = (
+                        server_config.get("command").and_then(|v| v.as_str()),
+                        server_config.get("args").and_then(|v| v.as_array()),
+                    ) {
+                        let args: Vec<String> = args
+                            .iter()
+                            .filter_map(|v| v.as_str().map(String::from))
+                            .collect();
+
+                        let env = server_config
+                            .get("env")
+                            .and_then(|v| v.as_object())
+                            .map(|obj| {
+                                obj.iter()
+                                    .filter_map(|(k, v)| {
+                                        v.as_str().map(|s| (k.clone(), s.to_string()))
+                                    })
+                                    .collect()
+                            });
+
+                        server_configs.push(mcp::McpServerConfig {
+                            name: name.clone(),
+                            command: command.to_string(),
+                            args,
+                            env,
+                        });
+                    }
+                }
+
+                if !server_configs.is_empty() {
+                    let registry = mcp::create_registry(&server_configs).await?;
+                    return Ok(Some(registry));
+                }
+            }
+        }
+    }
+
+    Ok(None)
+}
+
 #[derive(Parser)]
 #[command(author, version, about = "OpenRode - AI 编程智能体")]
 struct Args {
@@ -115,6 +168,26 @@ async fn main() -> anyhow::Result<()> {
     ];
     let skill_registry = skill::create_registry(&skill_dirs).await.ok();
 
+    // 初始化插件注册表
+    let plugin_config_paths = vec![
+        cwd.join(".openrode").join("plugins.json"),
+        dirs::home_dir()
+            .unwrap_or_default()
+            .join(".openrode")
+            .join("plugins.json"),
+    ];
+    let plugin_registry = plugin::create_registry(&plugin_config_paths).await.ok();
+
+    // 初始化 MCP 注册表
+    let mcp_config_paths = vec![
+        cwd.join(".openrode").join("mcp-config.json"),
+        dirs::home_dir()
+            .unwrap_or_default()
+            .join(".openrode")
+            .join("mcp-config.json"),
+    ];
+    let mcp_registry = load_mcp_config(&mcp_config_paths).await.ok().flatten();
+
     // 初始化存储
     let storage = storage::file::FileStorage::default_storage().await?;
 
@@ -204,22 +277,22 @@ async fn main() -> anyhow::Result<()> {
     let mut agent_loop = if let Some(session_id) = args.session {
         // 恢复指定会话
         println!("恢复会话: {session_id}");
-        agent::AgentLoop::resume(boxed_client, &session_id, boxed_storage, cwd.clone(), skill_registry).await?
+        agent::AgentLoop::resume(boxed_client, &session_id, boxed_storage, cwd.clone(), skill_registry, plugin_registry, mcp_registry).await?
     } else if args.r#continue {
         // 恢复最近会话
         match boxed_storage.latest_session_id().await? {
             Some(id) => {
                 println!("继续最近会话: {id}");
-                agent::AgentLoop::resume(boxed_client, &id, boxed_storage, cwd.clone(), skill_registry).await?
+                agent::AgentLoop::resume(boxed_client, &id, boxed_storage, cwd.clone(), skill_registry, plugin_registry, mcp_registry).await?
             }
             None => {
                 println!("没有历史会话，创建新会话");
-                agent::AgentLoop::new(boxed_client, model, boxed_storage, cwd.clone(), skill_registry).await?
+                agent::AgentLoop::new(boxed_client, model, boxed_storage, cwd.clone(), skill_registry, plugin_registry, mcp_registry).await?
             }
         }
     } else {
         // 新建会话
-        agent::AgentLoop::new(boxed_client, model, boxed_storage, cwd.clone(), skill_registry).await?
+        agent::AgentLoop::new(boxed_client, model, boxed_storage, cwd.clone(), skill_registry, plugin_registry, mcp_registry).await?
     };
 
     println!("会话 ID: {}", agent_loop.session_id());
