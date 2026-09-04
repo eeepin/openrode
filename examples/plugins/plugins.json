@@ -1,0 +1,9 @@
+[
+  {
+    "enabled": true,
+    "path": "examples/plugins/logging-plugin/target/release/libexample_plugin.so",
+    "config": {
+      "log_file": "plugin.log"
+    }
+  }
+]
