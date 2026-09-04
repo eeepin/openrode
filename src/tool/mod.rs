@@ -7,6 +7,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 
 use crate::permission::{PermissionDecision, PermissionManager, PermissionRequest};
+use crate::plugin::PluginRegistry;
 use crate::skill::{SkillRegistry, SkillTool};
 use crate::storage::Storage;
 
@@ -84,6 +85,8 @@ pub async fn create_registry(
     skill_registry: Option<SkillRegistry>,
     storage: Option<Arc<dyn Storage>>,
     client: Option<Arc<dyn ChatCompletionClient>>,
+    plugin_registry: Option<PluginRegistry>,
+    mcp_registry: Option<crate::mcp::McpRegistry>,
 ) -> ToolRegistry {
     let registry: ToolRegistry = Arc::new(RwLock::new(HashMap::new()));
 
@@ -105,6 +108,32 @@ pub async fn create_registry(
                 "task".to_string(),
                 Box::new(task::TaskTool::new(storage, client)),
             );
+        }
+
+        // 注册插件工具（如果有插件注册表）
+        if let Some(plugin_reg) = plugin_registry {
+            let plugin_tools = crate::plugin::extract_tools(&plugin_reg).await;
+            for tool in plugin_tools {
+                let tool_name = tool.name().to_string();
+                println!("注册插件工具: {}", tool_name);
+                reg.insert(tool_name, tool);
+            }
+        }
+
+        // 注册 MCP 工具（如果有 MCP 注册表）
+        if let Some(mcp_reg) = mcp_registry {
+            match crate::mcp::load_tools(&mcp_reg).await {
+                Ok(mcp_tools) => {
+                    for tool in mcp_tools {
+                        let tool_name = tool.name().to_string();
+                        println!("注册 MCP 工具: {}", tool_name);
+                        reg.insert(tool_name, tool);
+                    }
+                }
+                Err(e) => {
+                    eprintln!("加载 MCP 工具失败: {}", e);
+                }
+            }
         }
     }
 

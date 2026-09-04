@@ -187,7 +187,7 @@ async fn run_subtask(
     use crate::tool;
 
     // 创建工具注册表（子代理可以使用所有工具）
-    let registry = tool::create_registry(None, Some(storage.clone()), Some(client.clone())).await;
+    let registry = tool::create_registry(None, Some(storage.clone()), Some(client.clone()), None, None).await;
     let tool_defs = tool::get_tools(&registry).await;
 
     // 添加用户消息
